@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "homegame-ledger",
+  "compatibility_date": "2026-08-16",
+  "assets": {
+    "directory": "public"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

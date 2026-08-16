@@ -39,6 +39,7 @@ Do not put the service role key in frontend JavaScript. Use it only in Cloudflar
 3. Build settings for the current static app:
    - Build command: `npm run build`
    - Build output directory: `public`
+   - If Cloudflare shows Worker-style settings, keep Deploy command as `npx wrangler deploy`; `wrangler.jsonc` sets assets to `public`.
 4. Add environment variables:
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`

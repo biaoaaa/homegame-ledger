@@ -37,8 +37,8 @@ Do not put the service role key in frontend JavaScript. Use it only in Cloudflar
 1. Push this repo to GitHub.
 2. Create a Cloudflare Pages project from that GitHub repo.
 3. Build settings for the current static app:
-   - Build command: leave empty
-   - Build output directory: `/`
+   - Build command: `npm run build`
+   - Build output directory: `public`
 4. Add environment variables:
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`

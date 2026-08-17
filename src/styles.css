@@ -104,6 +104,10 @@ select {
   gap: 18px;
 }
 
+.sidebar > .panel {
+  grid-area: auto;
+}
+
 .main {
   display: grid;
   align-content: start;
@@ -487,6 +491,18 @@ h2 {
 
   .sidebar {
     display: contents;
+  }
+
+  .identity-panel {
+    grid-area: identity;
+  }
+
+  .player-panel {
+    grid-area: players;
+  }
+
+  .leaderboard-panel {
+    grid-area: leaderboard;
   }
 
   .panel,

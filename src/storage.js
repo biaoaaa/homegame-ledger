@@ -39,7 +39,11 @@ export async function loadState() {
 }
 
 export function rememberSelectedPlayer(playerId) {
-  if (playerId) localStorage.setItem(SELECTED_PLAYER_KEY, playerId);
+  if (playerId) {
+    localStorage.setItem(SELECTED_PLAYER_KEY, playerId);
+  } else {
+    localStorage.removeItem(SELECTED_PLAYER_KEY);
+  }
 }
 
 export async function createPlayer(name) {
@@ -97,7 +101,9 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
 }
 
 function withLocalSelection(state) {
-  localStorage.removeItem(SELECTED_PLAYER_KEY);
-  state.selectedPlayerId = null;
+  const selectedPlayerId = localStorage.getItem(SELECTED_PLAYER_KEY);
+  state.selectedPlayerId = state.players.some((player) => player.id === selectedPlayerId)
+    ? selectedPlayerId
+    : null;
   return state;
 }

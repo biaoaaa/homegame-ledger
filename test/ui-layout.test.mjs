@@ -18,4 +18,23 @@ describe("game detail layout", () => {
 
     assert.ok(formSource.indexOf("quick-grid") < formSource.indexOf("donationAmount"));
   });
+
+  it("does not show a placeholder on the donation field", () => {
+    const formStart = appSource.indexOf("function renderEntryForm");
+    const formEnd = appSource.indexOf("function renderJoinGamePrompt");
+    const formSource = appSource.slice(formStart, formEnd);
+
+    assert.equal(formSource.includes('name="donationAmount"'), true);
+    assert.equal(formSource.includes('placeholder="0 / 500"'), false);
+  });
+
+  it("lets users choose a date when creating a game", () => {
+    const gamesStart = appSource.indexOf("function renderGames");
+    const gamesEnd = appSource.indexOf("function renderGameButton");
+    const gamesSource = appSource.slice(gamesStart, gamesEnd);
+
+    assert.equal(gamesSource.includes('type="date"'), true);
+    assert.equal(gamesSource.includes('id="gameDate"'), true);
+    assert.equal(appSource.includes("createGame(todayISO(), state.selectedPlayerId)"), false);
+  });
 });

@@ -56,4 +56,9 @@ describe("game detail layout", () => {
     assert.equal(stylesSource.includes(".sidebar {"), true);
     assert.equal(stylesSource.includes("grid-template-areas:\n    \"sidebar main\""), true);
   });
+
+  it("prevents sidebar children from sharing the same grid cell", () => {
+    assert.equal(stylesSource.includes(".sidebar > .panel {"), true);
+    assert.equal(stylesSource.includes("grid-area: auto"), true);
+  });
 });

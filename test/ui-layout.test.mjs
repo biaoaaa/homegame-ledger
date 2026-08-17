@@ -48,6 +48,16 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("createGame(todayISO(), state.selectedPlayerId)"), false);
   });
 
+  it("shows a game winner summary and balanced label on game cards", () => {
+    const buttonStart = appSource.indexOf("function renderGameButton");
+    const buttonEnd = appSource.indexOf("function renderGameDetail");
+    const buttonSource = appSource.slice(buttonStart, buttonEnd);
+
+    assert.equal(buttonSource.includes("renderGameCardSummary"), true);
+    assert.equal(buttonSource.includes("已平账"), true);
+    assert.equal(buttonSource.includes("formatAmount(status.total)"), false);
+  });
+
   it("keeps sidebar panels from stretching with the opened game detail", () => {
     const shellStart = stylesSource.indexOf(".shell {");
     const shellEnd = stylesSource.indexOf("}", shellStart);

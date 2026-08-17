@@ -46,4 +46,14 @@ describe("game detail layout", () => {
 
     assert.equal(shellSource.includes("align-items: start"), true);
   });
+
+  it("groups left panels in one sidebar so row gaps do not expand", () => {
+    const renderStart = appSource.indexOf("function render()");
+    const renderEnd = appSource.indexOf("function renderError");
+    const renderSource = appSource.slice(renderStart, renderEnd);
+
+    assert.equal(renderSource.includes('<aside class="sidebar">'), true);
+    assert.equal(stylesSource.includes(".sidebar {"), true);
+    assert.equal(stylesSource.includes("grid-template-areas:\n    \"sidebar main\""), true);
+  });
 });

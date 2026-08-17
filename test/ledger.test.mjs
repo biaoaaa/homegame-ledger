@@ -7,6 +7,8 @@ import {
   createInitialState,
   deleteGame,
   formatAmount,
+  formatDateWithWeekday,
+  formatGameTitleWithWeekday,
   getQuickAmounts,
   getBalanceStatus,
   getGameForDate,
@@ -117,6 +119,18 @@ describe("ledger rules", () => {
     assert.equal(formatAmount(500), "+500");
     assert.equal(formatAmount(-2000), "-2,000");
     assert.equal(formatAmount(0), "0");
+  });
+
+  it("formats dates with the weekday", () => {
+    assert.equal(formatDateWithWeekday("2026-08-14"), "2026-08-14 周五");
+    assert.equal(formatDateWithWeekday("bad-date"), "bad-date");
+  });
+
+  it("formats game titles with the weekday after the date", () => {
+    assert.equal(
+      formatGameTitleWithWeekday({ date: "2026-08-14", title: "2026-08-14 对局一" }),
+      "2026-08-14 周五 对局一"
+    );
   });
 
   it("recommends symmetric quick amount buttons", () => {

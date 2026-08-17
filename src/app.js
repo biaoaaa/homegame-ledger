@@ -323,7 +323,7 @@ function renderEntryForm(player, myEntry, isLocked) {
     <form id="entryForm" class="entry-form">
       <label class="field">
         <span>${escapeHtml(player?.name ?? "")} 的输赢</span>
-        <input name="amount" inputmode="numeric" value="${myEntry ? formatAmount(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
+        <input name="amount" inputmode="numeric" value="${myEntry ? formatEntryAmountInput(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
       </label>
       <div class="quick-grid">
         ${quickAmounts
@@ -475,6 +475,11 @@ function formatPlainAmount(amount) {
 function formatDonationInput(amount) {
   const numericAmount = Math.max(0, Number(amount) || 0);
   return numericAmount > 0 ? numericAmount.toLocaleString("en-US") : "";
+}
+
+function formatEntryAmountInput(amount) {
+  const numericAmount = Number(amount) || 0;
+  return numericAmount === 0 ? "" : formatAmount(numericAmount);
 }
 
 function escapeHtml(value) {

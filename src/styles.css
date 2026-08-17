@@ -38,6 +38,48 @@ body {
   font-weight: 800;
 }
 
+.pin-screen {
+  display: grid;
+  min-height: 100vh;
+  padding: 24px;
+  place-items: center;
+}
+
+.pin-panel {
+  display: grid;
+  width: min(420px, 100%);
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(216, 208, 196, 0.9);
+  border-radius: 8px;
+  background: #171713;
+  color: #fffdf8;
+  box-shadow: var(--shadow);
+}
+
+.pin-panel h1 {
+  font-size: 42px;
+}
+
+.pin-panel .field span {
+  color: #d9d0c3;
+}
+
+.pin-panel input {
+  min-height: 58px;
+  font-size: 30px;
+  font-weight: 850;
+}
+
+.pin-error {
+  padding: 10px 12px;
+  border: 1px solid rgba(178, 48, 53, 0.36);
+  border-radius: 8px;
+  background: rgba(178, 48, 53, 0.14);
+  color: #ffe7e7;
+  font-weight: 800;
+}
+
 .error-banner {
   grid-column: 1 / -1;
   display: grid;

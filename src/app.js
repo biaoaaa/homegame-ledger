@@ -26,8 +26,11 @@ import {
 
 const quickAmounts = getQuickAmounts();
 const app = document.querySelector("#app");
+const ACCESS_PIN = "429";
+const ACCESS_KEY = "homegame-ledger:pin-ok";
 let state = null;
 let errorMessage = "";
+let hasAccess = readAccess();
 
 function setState(nextState) {
   state = nextState;
@@ -62,6 +65,12 @@ function ensureSelection() {
 }
 
 function render() {
+  if (!hasAccess) {
+    app.innerHTML = renderPinGate();
+    bindPinGate();
+    return;
+  }
+
   if (!state) {
     app.innerHTML = `<div class="loading-screen">Loading Homegame Ledger...</div>`;
     return;
@@ -85,6 +94,42 @@ function render() {
   `;
 
   bindEvents();
+}
+
+function renderPinGate() {
+  return `
+    <main class="pin-screen">
+      <form id="pinForm" class="pin-panel">
+        <p class="eyebrow">Homegame Ledger</p>
+        <h1>Homegame Ledger</h1>
+        <label class="field">
+          <span>PIN</span>
+          <input name="pin" inputmode="numeric" autocomplete="off" autofocus />
+        </label>
+        ${errorMessage ? `<div class="pin-error">${escapeHtml(errorMessage)}</div>` : ""}
+        <button class="primary-action" type="submit">进入</button>
+      </form>
+    </main>
+  `;
+}
+
+function bindPinGate() {
+  document.querySelector("#pinForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const pin = String(form.get("pin") || "").trim();
+    if (pin !== ACCESS_PIN) {
+      errorMessage = "PIN 不对";
+      render();
+      return;
+    }
+
+    hasAccess = true;
+    errorMessage = "";
+    rememberAccess();
+    render();
+    loadState().then(setState);
+  });
 }
 
 function renderError() {
@@ -524,4 +569,22 @@ function escapeHtml(value) {
 }
 
 render();
-loadState().then(setState);
+if (hasAccess) {
+  loadState().then(setState);
+}
+
+function readAccess() {
+  try {
+    return window.sessionStorage?.getItem(ACCESS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function rememberAccess() {
+  try {
+    window.sessionStorage?.setItem(ACCESS_KEY, "1");
+  } catch {
+    // Session remember is best-effort.
+  }
+}

@@ -316,7 +316,7 @@ function renderGameDetail() {
               <div class="entry-row">
                 <span>
                   <strong>${escapeHtml(rowPlayer.name)}</strong>
-                  ${donationAmount > 0 ? `<small>捐献 ${formatPlainAmount(donationAmount)}</small>` : ""}
+                  ${donationAmount > 0 ? `<small>捐赠金额 ${formatPlainAmount(donationAmount)}</small>` : ""}
                 </span>
                 <strong class="${amountClass(amount)}">${formatAmount(amount)}</strong>
               </div>

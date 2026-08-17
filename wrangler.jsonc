@@ -10,6 +10,9 @@
       "/api/*"
     ]
   },
+  "vars": {
+    "SUPABASE_URL": "https://yjdetmdmrjuthyrkbopu.supabase.co"
+  },
   "observability": {
     "enabled": true
   }

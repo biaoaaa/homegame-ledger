@@ -3,7 +3,6 @@ import {
   getBalanceStatus,
   getDonationLeaderboard,
   getGameEntries,
-  getGameSwingLeaders,
   getTopSingleGameWins,
   getQuickAmounts,
   isPlayerInGame,
@@ -250,7 +249,6 @@ function renderGameDetail() {
   );
   const isLocked = game.status === "locked";
   const detailTitle = game.title.replace(`${game.date} `, "");
-  const swingLeaders = getGameSwingLeaders(state, game.id);
   const isLegacyParticipant = Boolean(myEntry && !Array.isArray(game.participantIds));
   const isParticipant = player
     ? isPlayerInGame(game, player.id) || isLegacyParticipant
@@ -273,11 +271,6 @@ function renderGameDetail() {
         <span>合计</span>
         <strong>${formatAmount(status.total)}</strong>
         <small>${status.balanced ? "已平账" : `还需要 ${status.adjustmentLabel}`}</small>
-      </div>
-
-      <div class="swing-grid">
-        ${renderSwingCard("本局最大赢", swingLeaders.biggestWinner, "positive")}
-        ${renderSwingCard("本局最大输", swingLeaders.biggestLoser, "negative")}
       </div>
 
       ${renderParticipationControl(player, myEntry, isLocked, isParticipant)}
@@ -325,10 +318,6 @@ function renderEntryForm(player, myEntry, isLocked) {
         <span>${escapeHtml(player?.name ?? "")} 的输赢</span>
         <input name="amount" inputmode="numeric" value="${myEntry ? formatAmount(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
       </label>
-      <label class="field">
-        <span>本局捐献</span>
-        <input name="donationAmount" inputmode="numeric" value="${myEntry ? formatDonationInput(myEntry.donationAmount) : ""}" placeholder="0 / 500" ${isLocked ? "disabled" : ""} />
-      </label>
       <div class="quick-grid">
         ${quickAmounts
           .map(
@@ -340,6 +329,10 @@ function renderEntryForm(player, myEntry, isLocked) {
           )
           .join("")}
       </div>
+      <label class="field">
+        <span>本局捐献</span>
+        <input name="donationAmount" inputmode="numeric" value="${myEntry ? formatDonationInput(myEntry.donationAmount) : ""}" placeholder="0 / 500" ${isLocked ? "disabled" : ""} />
+      </label>
       <button class="primary-action" type="submit" ${isLocked ? "disabled" : ""}>保存本局记录</button>
     </form>
   `;
@@ -353,19 +346,6 @@ function renderJoinGamePrompt(player, isLocked) {
         <span>先入局，之后再填写这一局的输赢。</span>
       </div>
       <button id="joinGame" class="primary-action" ${isLocked ? "disabled" : ""}>进入对局</button>
-    </div>
-  `;
-}
-
-function renderSwingCard(label, leader, tone) {
-  return `
-    <div class="swing-card">
-      <span>${label}</span>
-      ${
-        leader
-          ? `<strong>${escapeHtml(leader.playerName)}</strong><b class="${tone}">${formatAmount(leader.amount)}</b>`
-          : `<strong>暂无</strong><b class="zero">0</b>`
-      }
     </div>
   `;
 }

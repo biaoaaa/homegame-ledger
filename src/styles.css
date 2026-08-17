@@ -390,39 +390,6 @@ h2 {
   font-weight: 700;
 }
 
-.swing-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0 0 14px;
-}
-
-.swing-card {
-  display: grid;
-  gap: 6px;
-  min-height: 84px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.swing-card span {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.swing-card strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.swing-card b {
-  font-size: 20px;
-}
-
 .entry-form input {
   min-height: 58px;
   font-size: 28px;
@@ -594,16 +561,6 @@ h2 {
   .balance-strip small {
     grid-column: 1 / -1;
     text-align: right;
-  }
-
-  .swing-grid {
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .swing-card {
-    min-height: 76px;
-    padding: 10px;
   }
 
   .join-panel {

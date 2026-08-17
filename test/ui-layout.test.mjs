@@ -12,6 +12,10 @@ describe("game detail layout", () => {
   });
 
   it("keeps quick win/loss buttons before the donation field", () => {
-    assert.ok(appSource.indexOf("quick-grid") < appSource.indexOf("donationAmount"));
+    const formStart = appSource.indexOf("function renderEntryForm");
+    const formEnd = appSource.indexOf("function renderJoinGamePrompt");
+    const formSource = appSource.slice(formStart, formEnd);
+
+    assert.ok(formSource.indexOf("quick-grid") < formSource.indexOf("donationAmount"));
   });
 });

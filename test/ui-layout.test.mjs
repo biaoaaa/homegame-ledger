@@ -50,12 +50,12 @@ describe("game detail layout", () => {
 
   it("shows a game winner summary and balanced label on game cards", () => {
     const buttonStart = appSource.indexOf("function renderGameButton");
-    const buttonEnd = appSource.indexOf("function renderGameDetail");
+    const buttonEnd = appSource.indexOf("function renderGameCardSummary");
     const buttonSource = appSource.slice(buttonStart, buttonEnd);
 
     assert.equal(buttonSource.includes("renderGameCardSummary"), true);
-    assert.equal(buttonSource.includes("已平账"), true);
     assert.equal(buttonSource.includes("formatAmount(status.total)"), false);
+    assert.equal(appSource.includes("已平账"), true);
   });
 
   it("keeps sidebar panels from stretching with the opened game detail", () => {

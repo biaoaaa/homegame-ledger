@@ -334,6 +334,32 @@ h2 {
   font-weight: 700;
 }
 
+.game-summary {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  min-width: 92px;
+  text-align: right;
+}
+
+.game-summary strong {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-summary b {
+  font-size: 18px;
+}
+
+.game-summary em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
 .empty-state,
 .empty-detail {
   color: var(--muted);
@@ -582,6 +608,14 @@ h2 {
 
   .game-item {
     min-height: 64px;
+  }
+
+  .game-summary {
+    min-width: 76px;
+  }
+
+  .game-summary strong {
+    max-width: 96px;
   }
 
   .detail {

@@ -3,6 +3,7 @@ import {
   getBalanceStatus,
   getDonationLeaderboard,
   getGameEntries,
+  getGameSwingLeaders,
   getTopSingleGameWins,
   getQuickAmounts,
   isPlayerInGame,
@@ -226,6 +227,7 @@ function renderGames() {
 function renderGameButton(game) {
   const status = getBalanceStatus(state, game.id);
   const isSelected = game.id === state.selectedGameId;
+  const summary = renderGameCardSummary(game, status);
 
   return `
     <button class="game-item ${isSelected ? "selected" : ""}" data-game-id="${game.id}">
@@ -233,8 +235,31 @@ function renderGameButton(game) {
         <strong>${escapeHtml(game.title)}</strong>
         <small>${game.status === "locked" ? "已锁定" : "进行中"}</small>
       </span>
-      <b class="${status.balanced ? "balanced" : "unbalanced"}">${formatAmount(status.total)}</b>
+      ${summary}
     </button>
+  `;
+}
+
+function renderGameCardSummary(game, status) {
+  const winner = getGameSwingLeaders(state, game.id).biggestWinner;
+
+  if (winner) {
+    return `
+      <span class="game-summary">
+        <small>大赢家</small>
+        <strong>${escapeHtml(winner.playerName)}</strong>
+        <b class="positive">${formatAmount(winner.amount)}</b>
+        ${status.balanced ? `<em>已平账</em>` : `<em class="unbalanced">${formatAmount(status.total)}</em>`}
+      </span>
+    `;
+  }
+
+  return `
+    <span class="game-summary">
+      <strong class="${status.balanced ? "balanced" : "unbalanced"}">
+        ${status.balanced ? "已平账" : formatAmount(status.total)}
+      </strong>
+    </span>
   `;
 }
 

@@ -93,10 +93,14 @@ select {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
   grid-template-areas:
-    "identity main"
-    "players main"
-    "leaderboard main";
+    "sidebar main";
   align-items: start;
+  gap: 18px;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  display: grid;
   gap: 18px;
 }
 
@@ -479,6 +483,10 @@ h2 {
       "main"
       "players"
       "leaderboard";
+  }
+
+  .sidebar {
+    display: contents;
   }
 
   .panel,

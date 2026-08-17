@@ -69,13 +69,15 @@ function render() {
   app.innerHTML = `
     <div class="shell">
       ${renderError()}
-      ${renderIdentity()}
+      <aside class="sidebar">
+        ${renderIdentity()}
+        ${renderPlayerForm()}
+        ${renderLeaderboard()}
+      </aside>
       <main class="main">
         ${renderGames()}
         ${renderGameDetail()}
       </main>
-      ${renderPlayerForm()}
-      ${renderLeaderboard()}
     </div>
   `;
 

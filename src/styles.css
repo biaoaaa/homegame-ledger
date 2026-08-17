@@ -96,6 +96,7 @@ select {
     "identity main"
     "players main"
     "leaderboard main";
+  align-items: start;
   gap: 18px;
 }
 

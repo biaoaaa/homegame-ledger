@@ -6,6 +6,12 @@ const appSource = readFileSync(new URL("../src/app.js", import.meta.url), "utf8"
 const stylesSource = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
 describe("game detail layout", () => {
+  it("requires the hardcoded pin before showing the ledger", () => {
+    assert.equal(appSource.includes('const ACCESS_PIN = "429"'), true);
+    assert.equal(appSource.includes("renderPinGate"), true);
+    assert.equal(appSource.includes("sessionStorage"), true);
+  });
+
   it("does not show per-game winner and loser cards in the detail view", () => {
     assert.equal(appSource.includes("swing-grid"), false);
     assert.equal(appSource.includes("本局最大赢"), false);

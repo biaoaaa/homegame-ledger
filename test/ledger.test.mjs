@@ -174,9 +174,9 @@ describe("ledger rules", () => {
     upsertEntry(state, secondGame.id, state.players[0].id, 1600);
 
     assert.deepEqual(getTopSingleGameWins(state), [
-      { playerName: "Cody", gameTitle: "2026-08-15 对局二", amount: 2500 },
-      { playerName: "Biao", gameTitle: "2026-08-15 对局二", amount: 1600 },
-      { playerName: "Biao", gameTitle: "2026-08-15 对局一", amount: 1200 }
+      { playerName: "Cody", gameTitle: "2026-08-15 周六 对局二", amount: 2500 },
+      { playerName: "Biao", gameTitle: "2026-08-15 周六 对局二", amount: 1600 },
+      { playerName: "Biao", gameTitle: "2026-08-15 周六 对局一", amount: 1200 }
     ]);
   });
 

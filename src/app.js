@@ -1,4 +1,6 @@
 import {
+  formatDateWithWeekday,
+  formatGameTitleWithWeekday,
   formatAmount,
   getBalanceStatus,
   getDonationLeaderboard,
@@ -203,7 +205,7 @@ function renderGames() {
   return `
     <section class="toolbar">
       <div>
-        <p class="eyebrow">${today}</p>
+        <p class="eyebrow">${formatDateWithWeekday(today)}</p>
         <h2>对局</h2>
       </div>
       <form id="createGameForm" class="create-game-form">
@@ -232,7 +234,7 @@ function renderGameButton(game) {
   return `
     <button class="game-item ${isSelected ? "selected" : ""}" data-game-id="${game.id}">
       <span>
-        <strong>${escapeHtml(game.title)}</strong>
+        <strong>${escapeHtml(formatGameTitleWithWeekday(game))}</strong>
         <small>${game.status === "locked" ? "已锁定" : "进行中"}</small>
       </span>
       ${summary}
@@ -280,7 +282,7 @@ function renderGameDetail() {
     (entry) => entry.gameId === game.id && entry.playerId === player?.id
   );
   const isLocked = game.status === "locked";
-  const detailTitle = game.title.replace(`${game.date} `, "");
+  const detailTitle = formatGameTitleWithWeekday(game);
   const isLegacyParticipant = Boolean(myEntry && !Array.isArray(game.participantIds));
   const isParticipant = player
     ? isPlayerInGame(game, player.id) || isLegacyParticipant
@@ -290,7 +292,7 @@ function renderGameDetail() {
     <section class="detail">
       <div class="detail-head">
         <div>
-          <p class="eyebrow">${game.date}</p>
+          <p class="eyebrow">${formatDateWithWeekday(game.date)}</p>
           <h2>${escapeHtml(detailTitle)}</h2>
         </div>
         <div class="detail-actions">

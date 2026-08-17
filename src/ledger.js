@@ -13,6 +13,7 @@ const CHINESE_NUMERALS = [
   "九",
   "十"
 ];
+const WEEKDAY_LABELS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
 export function createId(prefix = "id") {
   const randomPart =
@@ -94,6 +95,32 @@ export function formatAmount(amount) {
 
   const absolute = Math.abs(numericAmount).toLocaleString("en-US");
   return `${numericAmount > 0 ? "+" : "-"}${absolute}`;
+}
+
+export function formatDateWithWeekday(date) {
+  const dateText = String(date || "");
+  const match = dateText.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return dateText;
+
+  const parsedDate = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    12
+  );
+  if (Number.isNaN(parsedDate.getTime())) return dateText;
+
+  return `${dateText} ${WEEKDAY_LABELS[parsedDate.getDay()]}`;
+}
+
+export function formatGameTitleWithWeekday(game) {
+  const dateLabel = formatDateWithWeekday(game.date);
+  const title = String(game.title || "");
+  const suffix = title.startsWith(`${game.date} `)
+    ? title.slice(String(game.date).length + 1)
+    : title;
+
+  return suffix ? `${dateLabel} ${suffix}` : dateLabel;
 }
 
 export function getQuickAmounts() {
@@ -248,7 +275,7 @@ export function getTopSingleGameWins(state, limit = 3) {
     .filter((entry) => entry.amount > 0 && gamesById.has(entry.gameId) && playersById.has(entry.playerId))
     .map((entry) => ({
       playerName: playersById.get(entry.playerId).name,
-      gameTitle: gamesById.get(entry.gameId).title,
+      gameTitle: formatGameTitleWithWeekday(gamesById.get(entry.gameId)),
       amount: entry.amount
     }))
     .sort((left, right) => right.amount - left.amount)

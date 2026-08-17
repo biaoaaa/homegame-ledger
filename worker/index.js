@@ -33,6 +33,14 @@ async function handleApi(request, env, url) {
   const room = await getRoom(db, env.ROOM_CODE || "biao-homegame");
   const path = url.pathname;
 
+  if (request.method === "GET" && path === "/api/health") {
+    return json({
+      ok: true,
+      roomCode: env.ROOM_CODE || "biao-homegame",
+      roomId: room.id
+    });
+  }
+
   if (request.method === "GET" && path === "/api/state") {
     return json(await loadState(db, room.id));
   }
@@ -42,10 +50,14 @@ async function handleApi(request, env, url) {
     const name = String(body.name || "").trim();
     if (!name) return json({ error: "Player name is required" }, 400);
 
-    const existingPlayers = await db.get(
-      `/players?room_id=eq.${encodeURIComponent(room.id)}&name=ilike.${encodeURIComponent(name)}&select=id`
+    const players = await db.get(
+      `/players?room_id=eq.${encodeURIComponent(room.id)}&select=id,name`
     );
-    if (!existingPlayers.length) {
+    const existingPlayer = players.find(
+      (player) => player.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!existingPlayer) {
       await db.post("/players", {
         room_id: room.id,
         name

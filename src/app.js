@@ -26,10 +26,21 @@ import {
 const quickAmounts = getQuickAmounts();
 const app = document.querySelector("#app");
 let state = null;
+let errorMessage = "";
 
 function setState(nextState) {
   state = nextState;
+  errorMessage = "";
   render();
+}
+
+async function runAction(action) {
+  try {
+    await action();
+  } catch (error) {
+    errorMessage = error.message || "操作失败";
+    render();
+  }
 }
 
 function selectedPlayer() {
@@ -65,6 +76,7 @@ function render() {
 
   app.innerHTML = `
     <div class="shell">
+      ${renderError()}
       ${renderIdentity()}
       <main class="main">
         ${renderGames()}
@@ -76,6 +88,17 @@ function render() {
   `;
 
   bindEvents();
+}
+
+function renderError() {
+  if (!errorMessage) return "";
+
+  return `
+    <div class="error-banner">
+      <strong>操作失败</strong>
+      <span>${escapeHtml(errorMessage)}</span>
+    </div>
+  `;
 }
 
 function renderIdentity() {
@@ -310,18 +333,20 @@ function bindEvents() {
     render();
   });
 
-  document.querySelector("#playerForm")?.addEventListener("submit", async (event) => {
+  document.querySelector("#playerForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const nextState = await createPlayer(form.get("name"));
-    const player = nextState.players.find(
-      (item) => item.name.toLowerCase() === String(form.get("name")).trim().toLowerCase()
-    );
-    if (player) {
-      nextState.selectedPlayerId = player.id;
-      rememberSelectedPlayer(player.id);
-    }
-    setState(nextState);
+    runAction(async () => {
+      const form = new FormData(event.currentTarget);
+      const nextState = await createPlayer(form.get("name"));
+      const player = nextState.players.find(
+        (item) => item.name.toLowerCase() === String(form.get("name")).trim().toLowerCase()
+      );
+      if (player) {
+        nextState.selectedPlayerId = player.id;
+        rememberSelectedPlayer(player.id);
+      }
+      setState(nextState);
+    });
   });
 
   document.querySelectorAll("[data-player-id]").forEach((button) => {
@@ -332,8 +357,8 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#createTodayGame")?.addEventListener("click", async () => {
-    setState(await createGame(todayISO(), state.selectedPlayerId));
+  document.querySelector("#createTodayGame")?.addEventListener("click", () => {
+    runAction(async () => setState(await createGame(todayISO(), state.selectedPlayerId)));
   });
 
   document.querySelectorAll("[data-game-id]").forEach((button) => {
@@ -343,22 +368,26 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#entryForm")?.addEventListener("submit", async (event) => {
+  document.querySelector("#entryForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const game = selectedGame();
-    const player = selectedPlayer();
-    if (!game || !player || game.status === "locked") return;
+    runAction(async () => {
+      const game = selectedGame();
+      const player = selectedPlayer();
+      if (!game || !player || game.status === "locked") return;
 
-    const form = new FormData(event.currentTarget);
-    setState(await saveEntry(game.id, player.id, parseAmountInput(form.get("amount"))));
+      const form = new FormData(event.currentTarget);
+      setState(await saveEntry(game.id, player.id, parseAmountInput(form.get("amount"))));
+    });
   });
 
-  document.querySelector("#joinGame")?.addEventListener("click", async () => {
-    const game = selectedGame();
-    const player = selectedPlayer();
-    if (!game || !player || game.status === "locked") return;
+  document.querySelector("#joinGame")?.addEventListener("click", () => {
+    runAction(async () => {
+      const game = selectedGame();
+      const player = selectedPlayer();
+      if (!game || !player || game.status === "locked") return;
 
-    setState(await joinRemoteGame(game.id, player.id));
+      setState(await joinRemoteGame(game.id, player.id));
+    });
   });
 
   document.querySelectorAll("[data-quick-amount]").forEach((button) => {
@@ -370,22 +399,24 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#toggleLock")?.addEventListener("click", async () => {
-    const game = selectedGame();
-    if (!game) return;
+  document.querySelector("#toggleLock")?.addEventListener("click", () => {
+    runAction(async () => {
+      const game = selectedGame();
+      if (!game) return;
 
-    const status = game.status === "locked" ? "open" : "locked";
-    setState(await updateGameStatus(game.id, status, state.selectedPlayerId));
+      const status = game.status === "locked" ? "open" : "locked";
+      setState(await updateGameStatus(game.id, status, state.selectedPlayerId));
+    });
   });
 
-  document.querySelector("#deleteGame")?.addEventListener("click", async () => {
+  document.querySelector("#deleteGame")?.addEventListener("click", () => {
     const game = selectedGame();
     if (!game) return;
 
     const confirmed = window.confirm(`删除 ${game.title}？这一局的输赢记录也会一起删除。`);
     if (!confirmed) return;
 
-    setState(await deleteRemoteGame(game.id, state.selectedPlayerId));
+    runAction(async () => setState(await deleteRemoteGame(game.id, state.selectedPlayerId)));
   });
 }
 

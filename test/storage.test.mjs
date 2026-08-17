@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { applySubmittedDonation, resolveApiOrigin } from "../src/storage.js";
+import { applyStoredDonations, applySubmittedDonation, resolveApiOrigin } from "../src/storage.js";
 
 describe("storage api origin", () => {
   it("uses the deployed worker api for localhost preview", () => {
@@ -64,5 +64,35 @@ describe("submitted donation fallback", () => {
     };
 
     assert.deepEqual(applySubmittedDonation(state, "game_1", "player_1", 800), state);
+  });
+
+  it("restores saved donation fallback after another api action reloads state", () => {
+    global.window = {
+      localStorage: {
+        getItem: () => JSON.stringify({ "game_1:player_1": 800 })
+      }
+    };
+    const state = {
+      entries: [
+        {
+          gameId: "game_1",
+          playerId: "player_1",
+          amount: 500
+        }
+      ]
+    };
+
+    assert.deepEqual(applyStoredDonations(state), {
+      entries: [
+        {
+          gameId: "game_1",
+          playerId: "player_1",
+          amount: 500,
+          donationAmount: 800
+        }
+      ]
+    });
+
+    delete global.window;
   });
 });

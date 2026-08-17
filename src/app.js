@@ -473,6 +473,11 @@ function bindEvents() {
       const game = selectedGame();
       if (!game) return;
 
+      if (game.status === "locked") {
+        const confirmed = window.confirm(`确认解锁 ${formatGameTitleWithWeekday(game)}？解锁后大家可以继续修改这一局记录。`);
+        if (!confirmed) return;
+      }
+
       const status = game.status === "locked" ? "open" : "locked";
       setState(await updateGameStatus(game.id, status, state.selectedPlayerId));
     });

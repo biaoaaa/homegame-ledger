@@ -88,9 +88,7 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
 }
 
 function withLocalSelection(state) {
-  const selectedPlayerId = localStorage.getItem(SELECTED_PLAYER_KEY);
-  if (selectedPlayerId && state.players.some((player) => player.id === selectedPlayerId)) {
-    state.selectedPlayerId = selectedPlayerId;
-  }
+  localStorage.removeItem(SELECTED_PLAYER_KEY);
+  state.selectedPlayerId = null;
   return state;
 }

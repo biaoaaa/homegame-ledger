@@ -52,10 +52,6 @@ function selectedGame() {
 }
 
 function ensureSelection() {
-  if (!state.selectedPlayerId && state.players[0]) {
-    state.selectedPlayerId = state.players[0].id;
-  }
-
   const todayGame = getOpenGameForDate(state, todayISO());
   if (!state.selectedGameId && todayGame) {
     state.selectedGameId = todayGame.id;
@@ -113,6 +109,7 @@ function renderIdentity() {
       <label class="field">
         <span>我是谁</span>
         <select id="playerSelect">
+          <option value="" ${player ? "" : "selected"}>先选择你的名字</option>
           ${state.players
             .map(
               (option) =>
@@ -174,6 +171,7 @@ function renderLeaderboard() {
 function renderGames() {
   const today = todayISO();
   const todayGames = state.games.filter((game) => game.date === today);
+  const player = selectedPlayer();
 
   return `
     <section class="toolbar">
@@ -181,7 +179,7 @@ function renderGames() {
         <p class="eyebrow">${today}</p>
         <h2>对局</h2>
       </div>
-      <button id="createTodayGame">
+      <button id="createTodayGame" ${player ? "" : "disabled"}>
         新建对局${todayGames.length ? ` ${todayGames.length + 1}` : ""}
       </button>
     </section>
@@ -256,11 +254,7 @@ function renderGameDetail() {
         ${renderSwingCard("本局最大输", swingLeaders.biggestLoser, "negative")}
       </div>
 
-      ${
-        isParticipant
-          ? renderEntryForm(player, myEntry, isLocked)
-          : renderJoinGamePrompt(player, isLocked)
-      }
+      ${renderParticipationControl(player, myEntry, isLocked, isParticipant)}
 
       <div class="entries">
         ${getGameEntries(state, game.id)
@@ -275,6 +269,23 @@ function renderGameDetail() {
           .join("")}
       </div>
     </section>
+  `;
+}
+
+function renderParticipationControl(player, myEntry, isLocked, isParticipant) {
+  if (!player) return renderSelectPlayerPrompt();
+  if (!isParticipant) return renderJoinGamePrompt(player, isLocked);
+  return renderEntryForm(player, myEntry, isLocked);
+}
+
+function renderSelectPlayerPrompt() {
+  return `
+    <div class="join-panel">
+      <div>
+        <strong>先选择你是谁</strong>
+        <span>选择名字后再进入对局或填写输赢。</span>
+      </div>
+    </div>
   `;
 }
 
@@ -328,7 +339,7 @@ function renderSwingCard(label, leader, tone) {
 
 function bindEvents() {
   document.querySelector("#playerSelect")?.addEventListener("change", (event) => {
-    state.selectedPlayerId = event.target.value;
+    state.selectedPlayerId = event.target.value || null;
     rememberSelectedPlayer(state.selectedPlayerId);
     render();
   });

@@ -281,6 +281,24 @@ h2 {
   padding: 0 16px;
 }
 
+.create-game-form {
+  display: grid;
+  grid-template-columns: 150px auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.date-field {
+  display: grid;
+  gap: 5px;
+}
+
+.date-field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .game-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -520,6 +538,11 @@ h2 {
     flex: 0 0 auto;
     min-width: 92px;
     padding: 0 12px;
+  }
+
+  .create-game-form {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 142px;
   }
 
   .detail-actions {

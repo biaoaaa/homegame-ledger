@@ -195,7 +195,6 @@ function renderDonationBoard(rows) {
 
 function renderGames() {
   const today = todayISO();
-  const todayGames = state.games.filter((game) => game.date === today);
   const player = selectedPlayer();
 
   return `
@@ -204,9 +203,15 @@ function renderGames() {
         <p class="eyebrow">${today}</p>
         <h2>对局</h2>
       </div>
-      <button id="createTodayGame" ${player ? "" : "disabled"}>
-        新建对局${todayGames.length ? ` ${todayGames.length + 1}` : ""}
-      </button>
+      <form id="createGameForm" class="create-game-form">
+        <label class="date-field">
+          <span>日期</span>
+          <input id="gameDate" name="date" type="date" value="${today}" />
+        </label>
+        <button type="submit" ${player ? "" : "disabled"}>
+          新建对局
+        </button>
+      </form>
     </section>
     <section class="game-list" aria-label="对局列表">
       ${sortGames(state.games)
@@ -331,7 +336,7 @@ function renderEntryForm(player, myEntry, isLocked) {
       </div>
       <label class="field">
         <span>本局捐献</span>
-        <input name="donationAmount" inputmode="numeric" value="${myEntry ? formatDonationInput(myEntry.donationAmount) : ""}" placeholder="0 / 500" ${isLocked ? "disabled" : ""} />
+        <input name="donationAmount" inputmode="numeric" value="${myEntry ? formatDonationInput(myEntry.donationAmount) : ""}" ${isLocked ? "disabled" : ""} />
       </label>
       <button class="primary-action" type="submit" ${isLocked ? "disabled" : ""}>保存本局记录</button>
     </form>
@@ -381,8 +386,11 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#createTodayGame")?.addEventListener("click", () => {
-    runAction(async () => setState(await createGame(todayISO(), state.selectedPlayerId)));
+  document.querySelector("#createGameForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const date = String(form.get("date") || todayISO());
+    runAction(async () => setState(await createGame(date, state.selectedPlayerId)));
   });
 
   document.querySelectorAll("[data-game-id]").forEach((button) => {

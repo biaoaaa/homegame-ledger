@@ -1,10 +1,10 @@
 import {
   formatAmount,
   getBalanceStatus,
+  getDonationLeaderboard,
   getGameEntries,
   getGameSwingLeaders,
-  getPlayerParticipationCount,
-  getPlayerTotal,
+  getTopSingleGameWins,
   getQuickAmounts,
   isPlayerInGame,
   parseAmountInput,
@@ -135,33 +135,62 @@ function renderPlayerForm() {
 }
 
 function renderLeaderboard() {
-  const rows = state.players
-    .map((player) => ({
-      player,
-      participationCount: getPlayerParticipationCount(state, player.id),
-      total: getPlayerTotal(state, player.id)
-    }))
-    .sort((left, right) => right.total - left.total);
+  const topWins = getTopSingleGameWins(state);
+  const donationRows = getDonationLeaderboard(state);
 
   return `
     <section class="panel leaderboard-panel">
       <div class="section-head">
-        <h2>总输赢</h2>
+        <h2>榜单</h2>
         <span>${state.games.length} 局</span>
       </div>
-      <div class="leaderboard">
-        ${rows
-          .map(
-            ({ player, total, participationCount }) => `
-              <button class="leader-row" data-player-id="${player.id}">
-                <span><strong>${escapeHtml(player.name)}</strong><small>${participationCount} 局</small></span>
-                <strong class="${amountClass(total)}">${formatAmount(total)}</strong>
-              </button>
-            `
-          )
-          .join("")}
-      </div>
+      ${renderTopWinBoard(topWins)}
+      ${renderDonationBoard(donationRows)}
     </section>
+  `;
+}
+
+function renderTopWinBoard(rows) {
+  return `
+    <div class="leaderboard">
+      <h3>单局最高胜利 Top 3</h3>
+      ${
+        rows.length
+          ? rows
+              .map(
+                (row, index) => `
+                  <div class="leader-row">
+                    <span><strong>${index + 1}. ${escapeHtml(row.playerName)}</strong><small>${escapeHtml(row.gameTitle)}</small></span>
+                    <strong class="positive">${formatAmount(row.amount)}</strong>
+                  </div>
+                `
+              )
+              .join("")
+          : `<div class="empty-state compact">还没有赢钱记录</div>`
+      }
+    </div>
+  `;
+}
+
+function renderDonationBoard(rows) {
+  return `
+    <div class="leaderboard">
+      <h3>捐献榜 Top 3</h3>
+      ${
+        rows.length
+          ? rows
+              .map(
+                (row, index) => `
+                  <div class="leader-row">
+                    <span><strong>${index + 1}. ${escapeHtml(row.playerName)}</strong><small>累计捐献</small></span>
+                    <strong class="donation-amount">${formatPlainAmount(row.amount)}</strong>
+                  </div>
+                `
+              )
+              .join("")
+          : `<div class="empty-state compact">还没有捐献记录</div>`
+      }
+    </div>
   `;
 }
 
@@ -256,9 +285,12 @@ function renderGameDetail() {
       <div class="entries">
         ${getGameEntries(state, game.id)
           .map(
-            ({ player: rowPlayer, amount }) => `
+            ({ player: rowPlayer, amount, donationAmount }) => `
               <div class="entry-row">
-                <span>${escapeHtml(rowPlayer.name)}</span>
+                <span>
+                  <strong>${escapeHtml(rowPlayer.name)}</strong>
+                  ${donationAmount > 0 ? `<small>捐献 ${formatPlainAmount(donationAmount)}</small>` : ""}
+                </span>
                 <strong class="${amountClass(amount)}">${formatAmount(amount)}</strong>
               </div>
             `
@@ -293,6 +325,10 @@ function renderEntryForm(player, myEntry, isLocked) {
         <span>${escapeHtml(player?.name ?? "")} 的输赢</span>
         <input name="amount" inputmode="numeric" value="${myEntry ? formatAmount(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
       </label>
+      <label class="field">
+        <span>本局捐献</span>
+        <input name="donationAmount" inputmode="numeric" value="${myEntry ? formatDonationInput(myEntry.donationAmount) : ""}" placeholder="0 / 500" ${isLocked ? "disabled" : ""} />
+      </label>
       <div class="quick-grid">
         ${quickAmounts
           .map(
@@ -304,7 +340,7 @@ function renderEntryForm(player, myEntry, isLocked) {
           )
           .join("")}
       </div>
-      <button class="primary-action" type="submit" ${isLocked ? "disabled" : ""}>保存我的输赢</button>
+      <button class="primary-action" type="submit" ${isLocked ? "disabled" : ""}>保存本局记录</button>
     </form>
   `;
 }
@@ -385,7 +421,14 @@ function bindEvents() {
       if (!game || !player || game.status === "locked") return;
 
       const form = new FormData(event.currentTarget);
-      setState(await saveEntry(game.id, player.id, parseAmountInput(form.get("amount"))));
+      setState(
+        await saveEntry(
+          game.id,
+          player.id,
+          parseAmountInput(form.get("amount")),
+          Math.max(0, parseAmountInput(form.get("donationAmount")))
+        )
+      );
     });
   });
 
@@ -433,6 +476,15 @@ function amountClass(amount) {
   if (amount > 0) return "positive";
   if (amount < 0) return "negative";
   return "zero";
+}
+
+function formatPlainAmount(amount) {
+  return Math.max(0, Number(amount) || 0).toLocaleString("en-US");
+}
+
+function formatDonationInput(amount) {
+  const numericAmount = Math.max(0, Number(amount) || 0);
+  return numericAmount > 0 ? numericAmount.toLocaleString("en-US") : "";
 }
 
 function escapeHtml(value) {

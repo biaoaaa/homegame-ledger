@@ -116,6 +116,7 @@ async function handleApi(request, env, url) {
       game_id: body.gameId,
       player_id: body.playerId,
       amount: Number.parseInt(body.amount, 10) || 0,
+      donation_amount: Math.max(0, Number.parseInt(body.donationAmount, 10) || 0),
       updated_at: new Date().toISOString()
     }, { prefer: "resolution=merge-duplicates" });
     return json(await loadState(db, room.id, body.gameId, body.playerId));
@@ -216,6 +217,7 @@ async function loadState(db, roomId, selectedGameId = null, selectedPlayerId = n
         gameId: entry.game_id,
         playerId: entry.player_id,
         amount: entry.amount,
+        donationAmount: entry.donation_amount || 0,
         note: entry.note || "",
         updatedAt: entry.updated_at
       })),
@@ -242,8 +244,9 @@ async function joinGame(db, gameId, playerId) {
   await db.post("/entries?on_conflict=game_id,player_id", {
     game_id: gameId,
     player_id: playerId,
-    amount: 0
-  }, { prefer: "resolution=merge-duplicates" });
+    amount: 0,
+    donation_amount: 0
+  }, { prefer: "resolution=ignore-duplicates" });
 }
 
 function gameNumberToLabel(number) {

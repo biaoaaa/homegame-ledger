@@ -68,11 +68,11 @@ export async function joinRemoteGame(gameId, playerId) {
   );
 }
 
-export async function saveEntry(gameId, playerId, amount) {
+export async function saveEntry(gameId, playerId, amount, donationAmount) {
   return withLocalSelection(
     await requestJson("/api/entries", {
       method: "POST",
-      body: JSON.stringify({ gameId, playerId, amount })
+      body: JSON.stringify({ gameId, playerId, amount, donationAmount })
     })
   );
 }

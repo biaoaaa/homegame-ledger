@@ -226,6 +226,17 @@ h2 {
   margin-top: 14px;
 }
 
+.leaderboard + .leaderboard {
+  margin-top: 18px;
+}
+
+.leaderboard h3 {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .leader-row,
 .entry-row,
 .game-item {
@@ -251,6 +262,10 @@ h2 {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+}
+
+.donation-amount {
+  color: var(--gold);
 }
 
 .toolbar {
@@ -302,6 +317,13 @@ h2 {
   padding: 26px 18px;
   border: 1px dashed var(--line);
   border-radius: 8px;
+}
+
+.empty-state.compact {
+  min-height: auto;
+  padding: 14px 12px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .detail {
@@ -422,6 +444,17 @@ h2 {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.entry-row > span {
+  display: grid;
+  gap: 4px;
+}
+
+.entry-row small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .positive,

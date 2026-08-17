@@ -35,6 +35,7 @@ create table entries (
   game_id uuid not null references games(id) on delete cascade,
   player_id uuid not null references players(id) on delete cascade,
   amount integer not null default 0,
+  donation_amount integer not null default 0,
   note text not null default '',
   updated_at timestamptz not null default now(),
   unique (game_id, player_id)

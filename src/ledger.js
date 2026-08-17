@@ -143,19 +143,24 @@ export function joinGame(state, gameId, playerId) {
   return true;
 }
 
-export function upsertEntry(state, gameId, playerId, amount) {
+export function upsertEntry(state, gameId, playerId, amount, donationAmount = undefined) {
   const game = state.games.find((item) => item.id === gameId);
   if (game && Array.isArray(game.participantIds) && !game.participantIds.includes(playerId)) {
     game.participantIds.push(playerId);
   }
 
   const parsedAmount = parseAmountInput(amount);
+  const parsedDonation =
+    donationAmount === undefined ? undefined : Math.max(0, parseAmountInput(donationAmount));
   const existingEntry = state.entries.find(
     (entry) => entry.gameId === gameId && entry.playerId === playerId
   );
 
   if (existingEntry) {
     existingEntry.amount = parsedAmount;
+    if (parsedDonation !== undefined) {
+      existingEntry.donationAmount = parsedDonation;
+    }
     existingEntry.updatedAt = new Date().toISOString();
     return existingEntry;
   }
@@ -165,6 +170,7 @@ export function upsertEntry(state, gameId, playerId, amount) {
     gameId,
     playerId,
     amount: parsedAmount,
+    donationAmount: parsedDonation ?? 0,
     note: "",
     updatedAt: new Date().toISOString()
   };
@@ -205,7 +211,8 @@ export function getGameEntries(state, gameId) {
     return {
       player,
       entry,
-      amount: entry?.amount ?? 0
+      amount: entry?.amount ?? 0,
+      donationAmount: entry?.donationAmount ?? 0
     };
   });
 }
@@ -231,6 +238,40 @@ export function getPlayerTotal(state, playerId) {
 export function getPlayerParticipationCount(state, playerId) {
   return state.games.filter((game) => getGameParticipantIds(state, game).includes(playerId))
     .length;
+}
+
+export function getTopSingleGameWins(state, limit = 3) {
+  const gamesById = new Map(state.games.map((game) => [game.id, game]));
+  const playersById = new Map(state.players.map((player) => [player.id, player]));
+
+  return state.entries
+    .filter((entry) => entry.amount > 0 && gamesById.has(entry.gameId) && playersById.has(entry.playerId))
+    .map((entry) => ({
+      playerName: playersById.get(entry.playerId).name,
+      gameTitle: gamesById.get(entry.gameId).title,
+      amount: entry.amount
+    }))
+    .sort((left, right) => right.amount - left.amount)
+    .slice(0, limit);
+}
+
+export function getDonationLeaderboard(state, limit = 3) {
+  const totals = new Map();
+
+  for (const entry of state.entries) {
+    const donationAmount = Math.max(0, parseAmountInput(entry.donationAmount ?? 0));
+    if (donationAmount === 0) continue;
+    totals.set(entry.playerId, (totals.get(entry.playerId) ?? 0) + donationAmount);
+  }
+
+  return state.players
+    .map((player) => ({
+      playerName: player.name,
+      amount: totals.get(player.id) ?? 0
+    }))
+    .filter((row) => row.amount > 0)
+    .sort((left, right) => right.amount - left.amount)
+    .slice(0, limit);
 }
 
 export function getGameSwingLeaders(state, gameId) {

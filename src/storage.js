@@ -32,7 +32,7 @@ export function resolveApiOrigin(hostname) {
 export async function loadState() {
   try {
     const state = await requestJson("/api/state");
-    return withLocalSelection(applyStoredDonations(state));
+    return withLocalSelection(state);
   } catch (error) {
     console.warn(error);
     return withLocalSelection(createInitialState());
@@ -103,6 +103,7 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
 }
 
 function withLocalSelection(state) {
+  applyStoredDonations(state);
   if (!state.players.some((player) => player.id === state.selectedPlayerId)) {
     state.selectedPlayerId = null;
   }
@@ -123,7 +124,7 @@ export function applySubmittedDonation(state, gameId, playerId, donationAmount) 
   return state;
 }
 
-function applyStoredDonations(state) {
+export function applyStoredDonations(state) {
   const donations = readDonationFallbacks();
   if (!state?.entries || Object.keys(donations).length === 0) return state;
 

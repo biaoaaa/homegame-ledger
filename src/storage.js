@@ -1,6 +1,7 @@
 import { createInitialState } from "./ledger.js";
 
 const REMOTE_API_ORIGIN = "https://homegame-ledger.ablee.workers.dev";
+const DEPLOYED_HOSTNAME = "homegame-ledger.ablee.workers.dev";
 
 async function requestJson(path, options = {}) {
   const response = await fetch(`${getApiOrigin()}${path}`, {
@@ -20,11 +21,11 @@ async function requestJson(path, options = {}) {
 }
 
 function getApiOrigin() {
-  if (["127.0.0.1", "localhost"].includes(window.location.hostname)) {
-    return REMOTE_API_ORIGIN;
-  }
+  return resolveApiOrigin(window.location.hostname);
+}
 
-  return "";
+export function resolveApiOrigin(hostname) {
+  return hostname === DEPLOYED_HOSTNAME ? "" : REMOTE_API_ORIGIN;
 }
 
 export async function loadState() {

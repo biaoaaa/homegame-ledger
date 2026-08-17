@@ -3,7 +3,6 @@ import {
   getBalanceStatus,
   getGameEntries,
   getGameSwingLeaders,
-  getOpenGameForDate,
   getPlayerParticipationCount,
   getPlayerTotal,
   getQuickAmounts,
@@ -52,13 +51,11 @@ function selectedGame() {
 }
 
 function ensureSelection() {
-  const todayGame = getOpenGameForDate(state, todayISO());
-  if (!state.selectedGameId && todayGame) {
-    state.selectedGameId = todayGame.id;
-  }
-
-  if (!state.selectedGameId && state.games[0]) {
-    state.selectedGameId = sortGames(state.games)[0].id;
+  if (
+    state.selectedGameId &&
+    !state.games.some((game) => game.id === state.selectedGameId)
+  ) {
+    state.selectedGameId = null;
   }
 }
 
@@ -374,7 +371,8 @@ function bindEvents() {
 
   document.querySelectorAll("[data-game-id]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.selectedGameId = button.dataset.gameId;
+      state.selectedGameId =
+        state.selectedGameId === button.dataset.gameId ? null : button.dataset.gameId;
       render();
     });
   });

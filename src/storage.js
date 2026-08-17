@@ -1,6 +1,5 @@
 import { createInitialState } from "./ledger.js";
 
-const SELECTED_PLAYER_KEY = "homegame-ledger:selected-player";
 const REMOTE_API_ORIGIN = "https://homegame-ledger.ablee.workers.dev";
 
 async function requestJson(path, options = {}) {
@@ -39,11 +38,7 @@ export async function loadState() {
 }
 
 export function rememberSelectedPlayer(playerId) {
-  if (playerId) {
-    localStorage.setItem(SELECTED_PLAYER_KEY, playerId);
-  } else {
-    localStorage.removeItem(SELECTED_PLAYER_KEY);
-  }
+  return playerId;
 }
 
 export async function createPlayer(name) {
@@ -101,9 +96,8 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
 }
 
 function withLocalSelection(state) {
-  const selectedPlayerId = localStorage.getItem(SELECTED_PLAYER_KEY);
-  state.selectedPlayerId = state.players.some((player) => player.id === selectedPlayerId)
-    ? selectedPlayerId
-    : null;
+  if (!state.players.some((player) => player.id === state.selectedPlayerId)) {
+    state.selectedPlayerId = null;
+  }
   return state;
 }

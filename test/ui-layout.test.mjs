@@ -38,6 +38,15 @@ describe("game detail layout", () => {
     assert.equal(formSource.includes('placeholder="0 / 500"'), false);
   });
 
+  it("shows donation amount wording in the entry details", () => {
+    const detailStart = appSource.indexOf("function renderGameDetail");
+    const detailEnd = appSource.indexOf("function renderParticipationControl");
+    const detailSource = appSource.slice(detailStart, detailEnd);
+
+    assert.equal(detailSource.includes("捐赠金额"), true);
+    assert.equal(detailSource.includes("捐献 ${formatPlainAmount(donationAmount)}"), false);
+  });
+
   it("lets users choose a date when creating a game", () => {
     const gamesStart = appSource.indexOf("function renderGames");
     const gamesEnd = appSource.indexOf("function renderGameButton");

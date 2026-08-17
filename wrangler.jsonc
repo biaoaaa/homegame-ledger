@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "homegame-ledger",
+  "main": "worker/index.js",
   "compatibility_date": "2026-08-16",
   "assets": {
-    "directory": "public"
+    "directory": "public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "observability": {
     "enabled": true

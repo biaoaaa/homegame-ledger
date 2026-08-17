@@ -1,7 +1,4 @@
 import {
-  addPlayer,
-  createGameForDate,
-  deleteGame,
   formatAmount,
   getBalanceStatus,
   getGameEntries,
@@ -11,20 +8,27 @@ import {
   getPlayerTotal,
   getQuickAmounts,
   isPlayerInGame,
-  joinGame,
   parseAmountInput,
   sortGames,
   todayISO,
-  upsertEntry
 } from "./ledger.js";
-import { loadState, saveState } from "./storage.js";
+import {
+  createGame,
+  createPlayer,
+  deleteRemoteGame,
+  joinRemoteGame,
+  loadState,
+  rememberSelectedPlayer,
+  saveEntry,
+  updateGameStatus
+} from "./storage.js";
 
 const quickAmounts = getQuickAmounts();
 const app = document.querySelector("#app");
-let state = loadState();
+let state = null;
 
-function persistAndRender() {
-  saveState(state);
+function setState(nextState) {
+  state = nextState;
   render();
 }
 
@@ -45,9 +49,18 @@ function ensureSelection() {
   if (!state.selectedGameId && todayGame) {
     state.selectedGameId = todayGame.id;
   }
+
+  if (!state.selectedGameId && state.games[0]) {
+    state.selectedGameId = sortGames(state.games)[0].id;
+  }
 }
 
 function render() {
+  if (!state) {
+    app.innerHTML = `<div class="loading-screen">Loading Homegame Ledger...</div>`;
+    return;
+  }
+
   ensureSelection();
 
   app.innerHTML = `
@@ -293,55 +306,59 @@ function renderSwingCard(label, leader, tone) {
 function bindEvents() {
   document.querySelector("#playerSelect")?.addEventListener("change", (event) => {
     state.selectedPlayerId = event.target.value;
-    persistAndRender();
+    rememberSelectedPlayer(state.selectedPlayerId);
+    render();
   });
 
-  document.querySelector("#playerForm")?.addEventListener("submit", (event) => {
+  document.querySelector("#playerForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const player = addPlayer(state, form.get("name"));
-    if (player) state.selectedPlayerId = player.id;
-    persistAndRender();
+    const nextState = await createPlayer(form.get("name"));
+    const player = nextState.players.find(
+      (item) => item.name.toLowerCase() === String(form.get("name")).trim().toLowerCase()
+    );
+    if (player) {
+      nextState.selectedPlayerId = player.id;
+      rememberSelectedPlayer(player.id);
+    }
+    setState(nextState);
   });
 
   document.querySelectorAll("[data-player-id]").forEach((button) => {
     button.addEventListener("click", () => {
       state.selectedPlayerId = button.dataset.playerId;
-      persistAndRender();
+      rememberSelectedPlayer(state.selectedPlayerId);
+      render();
     });
   });
 
-  document.querySelector("#createTodayGame")?.addEventListener("click", () => {
-    const game = createGameForDate(state, todayISO(), state.selectedPlayerId);
-    state.selectedGameId = game.id;
-    persistAndRender();
+  document.querySelector("#createTodayGame")?.addEventListener("click", async () => {
+    setState(await createGame(todayISO(), state.selectedPlayerId));
   });
 
   document.querySelectorAll("[data-game-id]").forEach((button) => {
     button.addEventListener("click", () => {
       state.selectedGameId = button.dataset.gameId;
-      persistAndRender();
+      render();
     });
   });
 
-  document.querySelector("#entryForm")?.addEventListener("submit", (event) => {
+  document.querySelector("#entryForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const game = selectedGame();
     const player = selectedPlayer();
     if (!game || !player || game.status === "locked") return;
 
     const form = new FormData(event.currentTarget);
-    upsertEntry(state, game.id, player.id, form.get("amount"));
-    persistAndRender();
+    setState(await saveEntry(game.id, player.id, parseAmountInput(form.get("amount"))));
   });
 
-  document.querySelector("#joinGame")?.addEventListener("click", () => {
+  document.querySelector("#joinGame")?.addEventListener("click", async () => {
     const game = selectedGame();
     const player = selectedPlayer();
     if (!game || !player || game.status === "locked") return;
 
-    joinGame(state, game.id, player.id);
-    persistAndRender();
+    setState(await joinRemoteGame(game.id, player.id));
   });
 
   document.querySelectorAll("[data-quick-amount]").forEach((button) => {
@@ -353,23 +370,22 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#toggleLock")?.addEventListener("click", () => {
+  document.querySelector("#toggleLock")?.addEventListener("click", async () => {
     const game = selectedGame();
     if (!game) return;
 
-    game.status = game.status === "locked" ? "open" : "locked";
-    persistAndRender();
+    const status = game.status === "locked" ? "open" : "locked";
+    setState(await updateGameStatus(game.id, status, state.selectedPlayerId));
   });
 
-  document.querySelector("#deleteGame")?.addEventListener("click", () => {
+  document.querySelector("#deleteGame")?.addEventListener("click", async () => {
     const game = selectedGame();
     if (!game) return;
 
     const confirmed = window.confirm(`删除 ${game.title}？这一局的输赢记录也会一起删除。`);
     if (!confirmed) return;
 
-    deleteGame(state, game.id);
-    persistAndRender();
+    setState(await deleteRemoteGame(game.id, state.selectedPlayerId));
   });
 }
 
@@ -389,3 +405,4 @@ function escapeHtml(value) {
 }
 
 render();
+loadState().then(setState);

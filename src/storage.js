@@ -2,6 +2,7 @@ import { createInitialState } from "./ledger.js";
 
 const REMOTE_API_ORIGIN = "https://homegame-ledger.ablee.workers.dev";
 const DEPLOYED_HOSTNAME = "homegame-ledger.ablee.workers.dev";
+const DONATION_FALLBACK_KEY = "homegame-ledger:donations";
 
 async function requestJson(path, options = {}) {
   const response = await fetch(`${getApiOrigin()}${path}`, {
@@ -31,7 +32,7 @@ export function resolveApiOrigin(hostname) {
 export async function loadState() {
   try {
     const state = await requestJson("/api/state");
-    return withLocalSelection(state);
+    return withLocalSelection(applyStoredDonations(state));
   } catch (error) {
     console.warn(error);
     return withLocalSelection(createInitialState());
@@ -71,10 +72,15 @@ export async function joinRemoteGame(gameId, playerId) {
 
 export async function saveEntry(gameId, playerId, amount, donationAmount) {
   return withLocalSelection(
-    await requestJson("/api/entries", {
-      method: "POST",
-      body: JSON.stringify({ gameId, playerId, amount, donationAmount })
-    })
+    applySubmittedDonation(
+      await requestJson("/api/entries", {
+        method: "POST",
+        body: JSON.stringify({ gameId, playerId, amount, donationAmount })
+      }),
+      gameId,
+      playerId,
+      donationAmount
+    )
   );
 }
 
@@ -101,4 +107,59 @@ function withLocalSelection(state) {
     state.selectedPlayerId = null;
   }
   return state;
+}
+
+export function applySubmittedDonation(state, gameId, playerId, donationAmount) {
+  const parsedDonation = Math.max(0, Number.parseInt(donationAmount, 10) || 0);
+  rememberDonationFallback(gameId, playerId, parsedDonation);
+  if (!state?.entries) return state;
+
+  const entry = state.entries.find(
+    (item) => item.gameId === gameId && item.playerId === playerId
+  );
+  if (!entry || Object.hasOwn(entry, "donationAmount")) return state;
+
+  entry.donationAmount = parsedDonation;
+  return state;
+}
+
+function applyStoredDonations(state) {
+  const donations = readDonationFallbacks();
+  if (!state?.entries || Object.keys(donations).length === 0) return state;
+
+  for (const entry of state.entries) {
+    if (Object.hasOwn(entry, "donationAmount")) continue;
+    const donationAmount = donations[donationKey(entry.gameId, entry.playerId)];
+    if (donationAmount > 0) {
+      entry.donationAmount = donationAmount;
+    }
+  }
+
+  return state;
+}
+
+function rememberDonationFallback(gameId, playerId, donationAmount) {
+  try {
+    const donations = readDonationFallbacks();
+    if (donationAmount > 0) {
+      donations[donationKey(gameId, playerId)] = donationAmount;
+    } else {
+      delete donations[donationKey(gameId, playerId)];
+    }
+    window.localStorage?.setItem(DONATION_FALLBACK_KEY, JSON.stringify(donations));
+  } catch {
+    // Local fallback is best-effort; database saves still run without it.
+  }
+}
+
+function readDonationFallbacks() {
+  try {
+    return JSON.parse(window.localStorage?.getItem(DONATION_FALLBACK_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function donationKey(gameId, playerId) {
+  return `${gameId}:${playerId}`;
 }

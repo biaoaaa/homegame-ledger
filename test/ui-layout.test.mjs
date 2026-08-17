@@ -12,6 +12,17 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("sessionStorage"), true);
   });
 
+  it("moves leaderboard into a separate main tab", () => {
+    const renderStart = appSource.indexOf("function render()");
+    const renderEnd = appSource.indexOf("function renderPinGate");
+    const renderSource = appSource.slice(renderStart, renderEnd);
+
+    assert.equal(renderSource.includes("renderLeaderboard()"), false);
+    assert.equal(appSource.includes("view-tabs"), true);
+    assert.equal(appSource.includes("leaderboard-view"), true);
+    assert.equal(appSource.includes("activeView"), true);
+  });
+
   it("does not show per-game winner and loser cards in the detail view", () => {
     assert.equal(appSource.includes("swing-grid"), false);
     assert.equal(appSource.includes("本局最大赢"), false);

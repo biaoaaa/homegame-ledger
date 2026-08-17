@@ -67,6 +67,16 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("已平账"), true);
   });
 
+  it("asks for confirmation before unlocking a game", () => {
+    const lockStart = appSource.indexOf('document.querySelector("#toggleLock")');
+    const lockEnd = appSource.indexOf('document.querySelector("#deleteGame")');
+    const lockSource = appSource.slice(lockStart, lockEnd);
+
+    assert.equal(lockSource.includes('game.status === "locked"'), true);
+    assert.equal(lockSource.includes("window.confirm"), true);
+    assert.equal(lockSource.includes("if (!confirmed) return"), true);
+  });
+
   it("keeps sidebar panels from stretching with the opened game detail", () => {
     const shellStart = stylesSource.indexOf(".shell {");
     const shellEnd = stylesSource.indexOf("}", shellStart);

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const appSource = readFileSync(new URL("../src/app.js", import.meta.url), "utf8");
+const stylesSource = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
 describe("game detail layout", () => {
   it("does not show per-game winner and loser cards in the detail view", () => {
@@ -36,5 +37,13 @@ describe("game detail layout", () => {
     assert.equal(gamesSource.includes('type="date"'), true);
     assert.equal(gamesSource.includes('id="gameDate"'), true);
     assert.equal(appSource.includes("createGame(todayISO(), state.selectedPlayerId)"), false);
+  });
+
+  it("keeps sidebar panels from stretching with the opened game detail", () => {
+    const shellStart = stylesSource.indexOf(".shell {");
+    const shellEnd = stylesSource.indexOf("}", shellStart);
+    const shellSource = stylesSource.slice(shellStart, shellEnd);
+
+    assert.equal(shellSource.includes("align-items: start"), true);
   });
 });

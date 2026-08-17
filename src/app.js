@@ -31,6 +31,7 @@ const ACCESS_KEY = "homegame-ledger:pin-ok";
 let state = null;
 let errorMessage = "";
 let hasAccess = readAccess();
+let activeView = "games";
 
 function setState(nextState) {
   state = nextState;
@@ -84,11 +85,10 @@ function render() {
       <aside class="sidebar">
         ${renderIdentity()}
         ${renderPlayerForm()}
-        ${renderLeaderboard()}
       </aside>
       <main class="main">
-        ${renderGames()}
-        ${renderGameDetail()}
+        ${renderViewTabs()}
+        ${activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
       </main>
     </div>
   `;
@@ -140,6 +140,15 @@ function renderError() {
       <strong>操作失败</strong>
       <span>${escapeHtml(errorMessage)}</span>
     </div>
+  `;
+}
+
+function renderViewTabs() {
+  return `
+    <nav class="view-tabs" aria-label="主视图">
+      <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">对局</button>
+      <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">榜单</button>
+    </nav>
   `;
 }
 
@@ -195,6 +204,14 @@ function renderLeaderboard() {
       </div>
       ${renderTopWinBoard(topWins)}
       ${renderDonationBoard(donationRows)}
+    </section>
+  `;
+}
+
+function renderLeaderboardView() {
+  return `
+    <section class="leaderboard-view">
+      ${renderLeaderboard()}
     </section>
   `;
 }
@@ -268,6 +285,13 @@ function renderGames() {
         .map((game) => renderGameButton(game))
         .join("") || `<div class="empty-state">今天还没有对局</div>`}
     </section>
+  `;
+}
+
+function renderGamesView() {
+  return `
+    ${renderGames()}
+    ${renderGameDetail()}
   `;
 }
 
@@ -430,6 +454,13 @@ function renderJoinGamePrompt(player, isLocked) {
 }
 
 function bindEvents() {
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeView = button.dataset.view || "games";
+      render();
+    });
+  });
+
   document.querySelector("#playerSelect")?.addEventListener("change", (event) => {
     state.selectedPlayerId = event.target.value || null;
     rememberSelectedPlayer(state.selectedPlayerId);

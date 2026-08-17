@@ -263,6 +263,23 @@ h2 {
   font-weight: 700;
 }
 
+.view-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.view-tabs button {
+  background: rgba(255, 253, 248, 0.88);
+  font-weight: 850;
+}
+
+.view-tabs button.active {
+  background: #181713;
+  border-color: #181713;
+  color: #fffdf8;
+}
+
 .inline-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 76px;
@@ -286,6 +303,10 @@ h2 {
   color: var(--muted);
   font-size: 13px;
   font-weight: 850;
+}
+
+.leaderboard-view .leaderboard-panel {
+  width: 100%;
 }
 
 .leader-row,
@@ -552,9 +573,8 @@ h2 {
   .shell {
     grid-template-areas:
       "identity"
-      "main"
       "players"
-      "leaderboard";
+      "main";
   }
 
   .sidebar {
@@ -567,10 +587,6 @@ h2 {
 
   .player-panel {
     grid-area: players;
-  }
-
-  .leaderboard-panel {
-    grid-area: leaderboard;
   }
 
   .panel,

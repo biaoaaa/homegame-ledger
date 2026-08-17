@@ -20,6 +20,15 @@ describe("game detail layout", () => {
     assert.ok(formSource.indexOf("quick-grid") < formSource.indexOf("donationAmount"));
   });
 
+  it("does not prefill zero in the win/loss amount field", () => {
+    const formStart = appSource.indexOf("function renderEntryForm");
+    const formEnd = appSource.indexOf("function renderJoinGamePrompt");
+    const formSource = appSource.slice(formStart, formEnd);
+
+    assert.equal(formSource.includes("formatAmount(myEntry.amount)"), false);
+    assert.equal(formSource.includes("formatEntryAmountInput(myEntry.amount)"), true);
+  });
+
   it("does not show a placeholder on the donation field", () => {
     const formStart = appSource.indexOf("function renderEntryForm");
     const formEnd = appSource.indexOf("function renderJoinGamePrompt");

@@ -311,7 +311,7 @@ export function getGameSwingLeaders(state, gameId) {
   }
 
   const biggestWinner = rows.reduce((winner, row) =>
-    row.amount > winner.amount ? row : winner
+    isBetterWinner(row, winner) ? row : winner
   );
   const biggestLoser = rows.reduce((loser, row) =>
     row.amount < loser.amount ? row : loser
@@ -327,6 +327,11 @@ export function getGameSwingLeaders(state, gameId) {
         ? { playerName: biggestLoser.player.name, amount: biggestLoser.amount }
         : null
   };
+}
+
+function isBetterWinner(row, winner) {
+  if (row.amount !== winner.amount) return row.amount > winner.amount;
+  return row.donationAmount > winner.donationAmount;
 }
 
 export function getOpenGameForDate(state, date = todayISO()) {

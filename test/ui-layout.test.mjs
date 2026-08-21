@@ -41,7 +41,22 @@ describe("game detail layout", () => {
     assert.equal(renderSource.includes('activeView === "history" ? renderHistoryView()'), true);
     assert.ok(gamesViewSource.indexOf("${renderGameDetail()}") < gamesViewSource.indexOf("${renderRecentGames(recentGames)}"));
     assert.equal(gameClickSource.includes('activeView = "games"'), false);
-    assert.equal(historyViewSource.includes("${renderGameDetail()}"), true);
+    assert.equal(historyViewSource.includes("${renderGameDetail({ showEmpty: false })}"), true);
+    assert.equal(appSource.includes("function renderGameDetail({ showEmpty = true } = {})"), true);
+    assert.equal(appSource.includes("if (!game && !showEmpty) return \"\""), true);
+  });
+
+  it("lets the opened game detail title collapse the selected game", () => {
+    const detailStart = appSource.indexOf("function renderGameDetail");
+    const detailEnd = appSource.indexOf("function renderParticipationControl");
+    const detailSource = appSource.slice(detailStart, detailEnd);
+    const titleClickStart = appSource.indexOf('document.querySelector("#detailTitleToggle")');
+    const titleClickEnd = appSource.indexOf('document.querySelector("#toggleLock")');
+    const titleClickSource = appSource.slice(titleClickStart, titleClickEnd);
+
+    assert.equal(detailSource.includes('id="detailTitleToggle"'), true);
+    assert.equal(detailSource.includes('type="button"'), true);
+    assert.equal(titleClickSource.includes("state.selectedGameId = null"), true);
   });
 
   it("clears an expanded historical game when switching back to the games tab", () => {

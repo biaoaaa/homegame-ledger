@@ -251,6 +251,19 @@ h2 {
   gap: 8px;
 }
 
+.detail-title-toggle {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.detail-title-toggle:hover {
+  transform: none;
+}
+
 .danger-action {
   border-color: rgba(178, 48, 53, 0.32);
   color: var(--red);

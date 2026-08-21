@@ -313,7 +313,7 @@ function renderHistoryView() {
         <h2>历史对局</h2>
       </div>
     </section>
-    ${renderGameDetail()}
+    ${renderGameDetail({ showEmpty: false })}
     <section class="game-list" aria-label="历史对局">
       ${sortGames(state.games)
         .map((game) => renderGameButton(game))
@@ -361,8 +361,9 @@ function renderGameCardSummary(game, status) {
   `;
 }
 
-function renderGameDetail() {
+function renderGameDetail({ showEmpty = true } = {}) {
   const game = selectedGame();
+  if (!game && !showEmpty) return "";
   if (!game) {
     return `
       <section class="detail empty-detail">
@@ -387,10 +388,10 @@ function renderGameDetail() {
   return `
     <section class="detail">
       <div class="detail-head">
-        <div>
+        <button id="detailTitleToggle" class="detail-title-toggle" type="button">
           <p class="eyebrow">${formatDateWithWeekday(game.date)}</p>
           <h2>${escapeHtml(detailTitle)}</h2>
-        </div>
+        </button>
         <div class="detail-actions">
           <button id="toggleLock">${isLocked ? "解锁" : "锁定"}</button>
           <button id="deleteGame" class="danger-action">删除对局</button>
@@ -534,6 +535,11 @@ function bindEvents() {
         state.selectedGameId === button.dataset.gameId ? null : button.dataset.gameId;
       render();
     });
+  });
+
+  document.querySelector("#detailTitleToggle")?.addEventListener("click", () => {
+    state.selectedGameId = null;
+    render();
   });
 
   document.querySelector("#entryForm")?.addEventListener("submit", (event) => {

@@ -9,6 +9,7 @@ import {
   getTopSingleGameWins,
   getQuickAmounts,
   isPlayerInGame,
+  isValidAmountInput,
   parseAmountInput,
   sortGames,
   todayISO,
@@ -88,7 +89,7 @@ function render() {
       </aside>
       <main class="main">
         ${renderViewTabs()}
-        ${activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
+        ${activeView === "history" ? renderHistoryView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
       </main>
     </div>
   `;
@@ -147,6 +148,7 @@ function renderViewTabs() {
   return `
     <nav class="view-tabs" aria-label="主视图">
       <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">对局</button>
+      <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">历史</button>
       <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">榜单</button>
     </nav>
   `;
@@ -280,18 +282,42 @@ function renderGames() {
         </button>
       </form>
     </section>
-    <section class="game-list" aria-label="对局列表">
-      ${sortGames(state.games)
+  `;
+}
+
+function renderGamesView() {
+  const recentGames = sortGames(state.games).filter((game) => game.date === todayISO());
+
+  return `
+    ${renderGames()}
+    ${renderGameDetail()}
+    ${renderRecentGames(recentGames)}
+  `;
+}
+
+function renderRecentGames(games) {
+  return `
+    <section class="game-list" aria-label="今日对局">
+      ${games
         .map((game) => renderGameButton(game))
         .join("") || `<div class="empty-state">今天还没有对局</div>`}
     </section>
   `;
 }
 
-function renderGamesView() {
+function renderHistoryView() {
   return `
-    ${renderGames()}
-    ${renderGameDetail()}
+    <section class="toolbar">
+      <div>
+        <p class="eyebrow">${state.games.length} 局</p>
+        <h2>历史对局</h2>
+      </div>
+    </section>
+    <section class="game-list" aria-label="历史对局">
+      ${sortGames(state.games)
+        .map((game) => renderGameButton(game))
+        .join("") || `<div class="empty-state">还没有历史对局</div>`}
+    </section>
   `;
 }
 
@@ -502,18 +528,36 @@ function bindEvents() {
     button.addEventListener("click", () => {
       state.selectedGameId =
         state.selectedGameId === button.dataset.gameId ? null : button.dataset.gameId;
+      if (state.selectedGameId && activeView === "history") {
+        activeView = "games";
+      }
       render();
     });
   });
 
   document.querySelector("#entryForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const amountInput = form.get("amount");
+    const donationInput = form.get("donationAmount");
+
+    if (!isValidAmountInput(amountInput)) {
+      errorMessage = "输赢金额只能输入数字，可以带 + 或 -，比如 +500 / -2000。";
+      render();
+      return;
+    }
+
+    if (!isValidAmountInput(donationInput, { allowNegative: false })) {
+      errorMessage = "捐献金额只能输入 0 或正整数。";
+      render();
+      return;
+    }
+
     runAction(async () => {
       const game = selectedGame();
       const player = selectedPlayer();
       if (!game || !player || game.status === "locked") return;
 
-      const form = new FormData(event.currentTarget);
       setState(
         await saveEntry(
           game.id,

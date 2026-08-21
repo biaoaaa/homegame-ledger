@@ -33,7 +33,7 @@ describe("game detail layout", () => {
 
     assert.equal(appSource.includes('data-view="history"'), true);
     assert.equal(renderSource.includes('activeView === "history" ? renderHistoryView()'), true);
-    assert.ok(gamesViewSource.indexOf("renderGameDetail()") < gamesViewSource.indexOf("renderRecentGames()"));
+    assert.ok(gamesViewSource.indexOf("${renderGameDetail()}") < gamesViewSource.indexOf("${renderRecentGames(recentGames)}"));
   });
 
   it("does not show per-game winner and loser cards in the detail view", () => {

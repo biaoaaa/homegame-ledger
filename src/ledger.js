@@ -89,6 +89,22 @@ export function parseAmountInput(value) {
   return Number.isFinite(amount) ? amount : 0;
 }
 
+export function isValidAmountInput(value, { allowNegative = true } = {}) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && (allowNegative || value >= 0);
+  }
+
+  const normalized = String(value)
+    .trim()
+    .replace(/,/g, "")
+    .replace(/\s+/g, "");
+
+  if (!normalized) return true;
+
+  const pattern = allowNegative ? /^[+-]?\d+$/ : /^\+?\d+$/;
+  return pattern.test(normalized);
+}
+
 export function formatAmount(amount) {
   const numericAmount = Number(amount) || 0;
   if (numericAmount === 0) return "0";

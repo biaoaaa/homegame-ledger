@@ -267,4 +267,21 @@ describe("ledger rules", () => {
       biggestLoser: { playerName: "Jiarou", amount: -2000 }
     });
   });
+
+  it("uses higher donation as the biggest winner tie breaker", () => {
+    const state = createInitialState();
+    const thirdPlayer = { id: "player_c", name: "Cody", createdAt: new Date().toISOString() };
+    state.players.push(thirdPlayer);
+    const game = createGame("2026-08-15");
+    state.games.push(game);
+
+    upsertEntry(state, game.id, state.players[0].id, 1000, 100);
+    upsertEntry(state, game.id, thirdPlayer.id, 1000, 800);
+    upsertEntry(state, game.id, state.players[1].id, -2000);
+
+    assert.deepEqual(getGameSwingLeaders(state, game.id), {
+      biggestWinner: { playerName: "Cody", amount: 1000 },
+      biggestLoser: { playerName: "Jiarou", amount: -2000 }
+    });
+  });
 });

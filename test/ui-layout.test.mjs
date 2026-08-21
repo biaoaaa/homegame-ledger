@@ -44,6 +44,16 @@ describe("game detail layout", () => {
     assert.equal(historyViewSource.includes("${renderGameDetail()}"), true);
   });
 
+  it("clears an expanded historical game when switching back to the games tab", () => {
+    const tabClickStart = appSource.indexOf('document.querySelectorAll("[data-view]")');
+    const tabClickEnd = appSource.indexOf('document.querySelector("#playerSelect")');
+    const tabClickSource = appSource.slice(tabClickStart, tabClickEnd);
+
+    assert.equal(tabClickSource.includes('activeView = button.dataset.view || "games"'), true);
+    assert.equal(tabClickSource.includes('if (activeView === "games")'), true);
+    assert.equal(tabClickSource.includes("state.selectedGameId = null"), true);
+  });
+
   it("does not show per-game winner and loser cards in the detail view", () => {
     assert.equal(appSource.includes("swing-grid"), false);
     assert.equal(appSource.includes("本局最大赢"), false);

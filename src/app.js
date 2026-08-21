@@ -484,6 +484,9 @@ function bindEvents() {
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.addEventListener("click", () => {
       activeView = button.dataset.view || "games";
+      if (activeView === "games") {
+        state.selectedGameId = null;
+      }
       render();
     });
   });

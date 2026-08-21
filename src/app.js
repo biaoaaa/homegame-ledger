@@ -419,7 +419,7 @@ function renderEntryForm(player, myEntry, isLocked) {
     <form id="entryForm" class="entry-form">
       <label class="field">
         <span>${escapeHtml(player?.name ?? "")} 的输赢</span>
-        <input name="amount" inputmode="numeric" value="${myEntry ? formatEntryAmountInput(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
+        <input name="amount" inputmode="text" autocapitalize="off" spellcheck="false" value="${myEntry ? formatEntryAmountInput(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
       </label>
       <div class="quick-grid">
         ${quickAmounts

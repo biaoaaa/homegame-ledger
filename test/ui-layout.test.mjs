@@ -46,6 +46,16 @@ describe("game detail layout", () => {
     assert.equal(formSource.includes("formatEntryAmountInput(myEntry.amount)"), true);
   });
 
+  it("keeps the win/loss amount field friendly to plus and minus signs on phones", () => {
+    const formStart = appSource.indexOf("function renderEntryForm");
+    const formEnd = appSource.indexOf("function renderJoinGamePrompt");
+    const formSource = appSource.slice(formStart, formEnd);
+
+    assert.equal(formSource.includes('name="amount" inputmode="text"'), true);
+    assert.equal(formSource.includes('name="amount" inputmode="numeric"'), false);
+    assert.equal(formSource.includes('name="donationAmount" inputmode="numeric"'), true);
+  });
+
   it("does not show a placeholder on the donation field", () => {
     const formStart = appSource.indexOf("function renderEntryForm");
     const formEnd = appSource.indexOf("function renderJoinGamePrompt");

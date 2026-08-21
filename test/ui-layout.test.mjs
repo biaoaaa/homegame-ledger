@@ -23,6 +23,19 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("activeView"), true);
   });
 
+  it("moves historical games into their own main tab", () => {
+    const renderStart = appSource.indexOf("function render()");
+    const renderEnd = appSource.indexOf("function renderPinGate");
+    const renderSource = appSource.slice(renderStart, renderEnd);
+    const gamesViewStart = appSource.indexOf("function renderGamesView");
+    const gamesViewEnd = appSource.indexOf("function renderGameButton");
+    const gamesViewSource = appSource.slice(gamesViewStart, gamesViewEnd);
+
+    assert.equal(appSource.includes('data-view="history"'), true);
+    assert.equal(renderSource.includes('activeView === "history" ? renderHistoryView()'), true);
+    assert.ok(gamesViewSource.indexOf("renderGameDetail()") < gamesViewSource.indexOf("renderRecentGames()"));
+  });
+
   it("does not show per-game winner and loser cards in the detail view", () => {
     assert.equal(appSource.includes("swing-grid"), false);
     assert.equal(appSource.includes("本局最大赢"), false);

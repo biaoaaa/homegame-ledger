@@ -17,6 +17,7 @@ import {
   getDonationLeaderboard,
   getPlayerParticipationCount,
   getTopSingleGameWins,
+  isValidAmountInput,
   isPlayerInGame,
   joinGame,
   parseAmountInput,
@@ -113,6 +114,16 @@ describe("ledger rules", () => {
     assert.equal(parseAmountInput("1000"), 1000);
     assert.equal(parseAmountInput("-2000"), -2000);
     assert.equal(parseAmountInput(" - 1,500 "), -1500);
+  });
+
+  it("validates amount inputs before saving", () => {
+    assert.equal(isValidAmountInput("+500"), true);
+    assert.equal(isValidAmountInput("-2,000"), true);
+    assert.equal(isValidAmountInput(" 1 000 "), true);
+    assert.equal(isValidAmountInput(""), true);
+    assert.equal(isValidAmountInput("abc"), false);
+    assert.equal(isValidAmountInput("五百"), false);
+    assert.equal(isValidAmountInput("500abc"), false);
   });
 
   it("formats positive, negative, and zero amounts", () => {

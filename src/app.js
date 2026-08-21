@@ -313,6 +313,7 @@ function renderHistoryView() {
         <h2>历史对局</h2>
       </div>
     </section>
+    ${renderGameDetail()}
     <section class="game-list" aria-label="历史对局">
       ${sortGames(state.games)
         .map((game) => renderGameButton(game))
@@ -528,9 +529,6 @@ function bindEvents() {
     button.addEventListener("click", () => {
       state.selectedGameId =
         state.selectedGameId === button.dataset.gameId ? null : button.dataset.gameId;
-      if (state.selectedGameId && activeView === "history") {
-        activeView = "games";
-      }
       render();
     });
   });

@@ -30,10 +30,18 @@ describe("game detail layout", () => {
     const gamesViewStart = appSource.indexOf("function renderGamesView");
     const gamesViewEnd = appSource.indexOf("function renderGameButton");
     const gamesViewSource = appSource.slice(gamesViewStart, gamesViewEnd);
+    const gameClickStart = appSource.indexOf('document.querySelectorAll("[data-game-id]")');
+    const gameClickEnd = appSource.indexOf('document.querySelector("#entryForm")');
+    const gameClickSource = appSource.slice(gameClickStart, gameClickEnd);
+    const historyViewStart = appSource.indexOf("function renderHistoryView");
+    const historyViewEnd = appSource.indexOf("function renderGameButton");
+    const historyViewSource = appSource.slice(historyViewStart, historyViewEnd);
 
     assert.equal(appSource.includes('data-view="history"'), true);
     assert.equal(renderSource.includes('activeView === "history" ? renderHistoryView()'), true);
     assert.ok(gamesViewSource.indexOf("${renderGameDetail()}") < gamesViewSource.indexOf("${renderRecentGames(recentGames)}"));
+    assert.equal(gameClickSource.includes('activeView = "games"'), false);
+    assert.equal(historyViewSource.includes("${renderGameDetail()}"), true);
   });
 
   it("does not show per-game winner and loser cards in the detail view", () => {

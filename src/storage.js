@@ -3,6 +3,7 @@ import { createInitialState } from "./ledger.js";
 const REMOTE_API_ORIGIN = "https://homegame-ledger.ablee.workers.dev";
 const DEPLOYED_HOSTNAME = "homegame-ledger.ablee.workers.dev";
 const DONATION_FALLBACK_KEY = "homegame-ledger:donations";
+const SELECTED_PLAYER_KEY = "homegame-ledger:selected-player";
 
 async function requestJson(path, options = {}) {
   const response = await fetch(`${getApiOrigin()}${path}`, {
@@ -40,6 +41,15 @@ export async function loadState() {
 }
 
 export function rememberSelectedPlayer(playerId) {
+  try {
+    if (playerId) {
+      window.sessionStorage?.setItem(SELECTED_PLAYER_KEY, playerId);
+    } else {
+      window.sessionStorage?.removeItem(SELECTED_PLAYER_KEY);
+    }
+  } catch {
+    // Player selection is best-effort session state.
+  }
   return playerId;
 }
 
@@ -104,10 +114,19 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
 
 function withLocalSelection(state) {
   applyStoredDonations(state);
+  state.selectedPlayerId = readSelectedPlayer() || state.selectedPlayerId;
   if (!state.players.some((player) => player.id === state.selectedPlayerId)) {
     state.selectedPlayerId = null;
   }
   return state;
+}
+
+function readSelectedPlayer() {
+  try {
+    return window.sessionStorage?.getItem(SELECTED_PLAYER_KEY) || null;
+  } catch {
+    return null;
+  }
 }
 
 export function applySubmittedDonation(state, gameId, playerId, donationAmount) {

@@ -67,14 +67,14 @@ function ensureSelection() {
 }
 
 function render() {
-  if (!hasAccess) {
-    app.innerHTML = renderPinGate();
-    bindPinGate();
+  if (!state) {
+    app.innerHTML = `<div class="loading-screen">Loading Homegame Ledger...</div>`;
     return;
   }
 
-  if (!state) {
-    app.innerHTML = `<div class="loading-screen">Loading Homegame Ledger...</div>`;
+  if (!hasAccess || !selectedPlayer()) {
+    app.innerHTML = renderPinGate();
+    bindPinGate();
     return;
   }
 
@@ -83,10 +83,6 @@ function render() {
   app.innerHTML = `
     <div class="shell">
       ${renderError()}
-      <aside class="sidebar">
-        ${renderIdentity()}
-        ${renderPlayerForm()}
-      </aside>
       <main class="main">
         ${renderViewTabs()}
         ${activeView === "history" ? renderHistoryView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
@@ -98,26 +94,74 @@ function render() {
 }
 
 function renderPinGate() {
+  const player = selectedPlayer();
+
   return `
     <main class="pin-screen">
-      <form id="pinForm" class="pin-panel">
+      <section class="pin-panel">
         <p class="eyebrow">Homegame Ledger</p>
         <h1>Homegame Ledger</h1>
-        <label class="field">
-          <span>PIN</span>
-          <input name="pin" inputmode="numeric" autocomplete="off" autofocus />
-        </label>
-        ${errorMessage ? `<div class="pin-error">${escapeHtml(errorMessage)}</div>` : ""}
-        <button class="primary-action" type="submit">进入</button>
-      </form>
+        <form id="pinForm" class="pin-form">
+          <label class="field">
+            <span>我是谁</span>
+            <select id="pinPlayerSelect" name="playerId" autofocus>
+              <option value="" ${player ? "" : "selected"}>先选择你的名字</option>
+              ${state.players
+                .map(
+                  (option) =>
+                    `<option value="${option.id}" ${option.id === player?.id ? "selected" : ""}>${escapeHtml(option.name)}</option>`
+                )
+                .join("")}
+            </select>
+          </label>
+          <label class="field">
+            <span>房间 PIN</span>
+            <input name="pin" inputmode="numeric" autocomplete="off" />
+          </label>
+          ${errorMessage ? `<div class="pin-error">${escapeHtml(errorMessage)}</div>` : ""}
+          <button class="primary-action" type="submit">进入</button>
+        </form>
+        <div class="pin-add-player">
+          <input id="pinNewPlayerName" autocomplete="off" placeholder="新玩家名字" />
+          <button id="pinAddPlayer" type="button">添加</button>
+        </div>
+      </section>
     </main>
   `;
 }
 
 function bindPinGate() {
+  document.querySelector("#pinPlayerSelect")?.addEventListener("change", (event) => {
+    state.selectedPlayerId = event.target.value || null;
+    rememberSelectedPlayer(state.selectedPlayerId);
+    render();
+  });
+
+  document.querySelector("#pinAddPlayer")?.addEventListener("click", () => {
+    runAction(async () => {
+      const input = document.querySelector("#pinNewPlayerName");
+      const nextState = await createPlayer(input?.value || "");
+      const player = nextState.players.find(
+        (item) => item.name.toLowerCase() === String(input?.value || "").trim().toLowerCase()
+      );
+      if (player) {
+        nextState.selectedPlayerId = player.id;
+        rememberSelectedPlayer(player.id);
+      }
+      setState(nextState);
+    });
+  });
+
   document.querySelector("#pinForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const playerId = String(form.get("playerId") || "").trim();
+    if (!playerId) {
+      errorMessage = "先选择你的名字";
+      render();
+      return;
+    }
+
     const pin = String(form.get("pin") || "").trim();
     if (pin !== ACCESS_PIN) {
       errorMessage = "PIN 不对";
@@ -126,10 +170,11 @@ function bindPinGate() {
     }
 
     hasAccess = true;
+    state.selectedPlayerId = playerId;
     errorMessage = "";
+    rememberSelectedPlayer(playerId);
     rememberAccess();
     render();
-    loadState().then(setState);
   });
 }
 
@@ -151,46 +196,6 @@ function renderViewTabs() {
       <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">历史</button>
       <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">榜单</button>
     </nav>
-  `;
-}
-
-function renderIdentity() {
-  const player = selectedPlayer();
-
-  return `
-    <section class="panel identity-panel">
-      <div>
-        <p class="eyebrow">Homegame Ledger</p>
-        <h1>Homegame Ledger</h1>
-      </div>
-      <label class="field">
-        <span>我是谁</span>
-        <select id="playerSelect">
-          <option value="" ${player ? "" : "selected"}>先选择你的名字</option>
-          ${state.players
-            .map(
-              (option) =>
-                `<option value="${option.id}" ${option.id === player?.id ? "selected" : ""}>${escapeHtml(option.name)}</option>`
-            )
-            .join("")}
-        </select>
-      </label>
-    </section>
-  `;
-}
-
-function renderPlayerForm() {
-  return `
-    <section class="panel player-panel">
-      <div class="section-head">
-        <h2>玩家</h2>
-        <span>${state.players.length} 人</span>
-      </div>
-      <form id="playerForm" class="inline-form">
-        <input name="name" autocomplete="off" placeholder="新玩家名字" />
-        <button type="submit">添加</button>
-      </form>
-    </section>
   `;
 }
 
@@ -492,36 +497,6 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#playerSelect")?.addEventListener("change", (event) => {
-    state.selectedPlayerId = event.target.value || null;
-    rememberSelectedPlayer(state.selectedPlayerId);
-    render();
-  });
-
-  document.querySelector("#playerForm")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    runAction(async () => {
-      const form = new FormData(event.currentTarget);
-      const nextState = await createPlayer(form.get("name"));
-      const player = nextState.players.find(
-        (item) => item.name.toLowerCase() === String(form.get("name")).trim().toLowerCase()
-      );
-      if (player) {
-        nextState.selectedPlayerId = player.id;
-        rememberSelectedPlayer(player.id);
-      }
-      setState(nextState);
-    });
-  });
-
-  document.querySelectorAll("[data-player-id]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.selectedPlayerId = button.dataset.playerId;
-      rememberSelectedPlayer(state.selectedPlayerId);
-      render();
-    });
-  });
-
   document.querySelector("#createGameForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -651,9 +626,7 @@ function escapeHtml(value) {
 }
 
 render();
-if (hasAccess) {
-  loadState().then(setState);
-}
+loadState().then(setState);
 
 function readAccess() {
   try {

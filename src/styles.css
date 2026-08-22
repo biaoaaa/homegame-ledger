@@ -65,10 +65,22 @@ body {
   color: #d9d0c3;
 }
 
-.pin-panel input {
+.pin-form {
+  display: grid;
+  gap: 14px;
+}
+
+.pin-panel input,
+.pin-panel select {
   min-height: 58px;
   font-size: 30px;
   font-weight: 850;
+}
+
+.pin-add-player {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  gap: 8px;
 }
 
 .pin-error {
@@ -133,9 +145,7 @@ select {
   margin: 0 auto;
   padding: 28px 0;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
-  grid-template-areas:
-    "sidebar main";
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 18px;
 }

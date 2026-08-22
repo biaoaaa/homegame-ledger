@@ -12,6 +12,27 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("sessionStorage"), true);
   });
 
+  it("collects player identity and allows adding a player before entering", () => {
+    const renderStart = appSource.indexOf("function render()");
+    const renderEnd = appSource.indexOf("function renderPinGate");
+    const renderSource = appSource.slice(renderStart, renderEnd);
+    const gateStart = appSource.indexOf("function renderPinGate");
+    const gateEnd = appSource.indexOf("function bindPinGate");
+    const gateSource = appSource.slice(gateStart, gateEnd);
+    const bindGateStart = appSource.indexOf("function bindPinGate");
+    const bindGateEnd = appSource.indexOf("function renderError");
+    const bindGateSource = appSource.slice(bindGateStart, bindGateEnd);
+
+    assert.equal(renderSource.includes('<aside class="sidebar">'), false);
+    assert.equal(renderSource.includes("renderIdentity()"), false);
+    assert.equal(renderSource.includes("renderPlayerForm()"), false);
+    assert.equal(gateSource.includes('select id="pinPlayerSelect"'), true);
+    assert.equal(gateSource.includes('id="pinAddPlayer"'), true);
+    assert.equal(bindGateSource.includes('document.querySelector("#pinAddPlayer")'), true);
+    assert.equal(bindGateSource.includes("createPlayer"), true);
+    assert.equal(bindGateSource.includes("先选择你的名字"), true);
+  });
+
   it("moves leaderboard into a separate main tab", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");
@@ -150,26 +171,17 @@ describe("game detail layout", () => {
     assert.equal(lockSource.includes("if (!confirmed) return"), true);
   });
 
-  it("keeps sidebar panels from stretching with the opened game detail", () => {
+  it("keeps the main app layout in one column after identity moves to entry", () => {
     const shellStart = stylesSource.indexOf(".shell {");
     const shellEnd = stylesSource.indexOf("}", shellStart);
     const shellSource = stylesSource.slice(shellStart, shellEnd);
-
-    assert.equal(shellSource.includes("align-items: start"), true);
-  });
-
-  it("groups left panels in one sidebar so row gaps do not expand", () => {
     const renderStart = appSource.indexOf("function render()");
-    const renderEnd = appSource.indexOf("function renderError");
+    const renderEnd = appSource.indexOf("function renderPinGate");
     const renderSource = appSource.slice(renderStart, renderEnd);
 
-    assert.equal(renderSource.includes('<aside class="sidebar">'), true);
-    assert.equal(stylesSource.includes(".sidebar {"), true);
-    assert.equal(stylesSource.includes("grid-template-areas:\n    \"sidebar main\""), true);
-  });
-
-  it("prevents sidebar children from sharing the same grid cell", () => {
-    assert.equal(stylesSource.includes(".sidebar > .panel {"), true);
-    assert.equal(stylesSource.includes("grid-area: auto"), true);
+    assert.equal(renderSource.includes('<aside class="sidebar">'), false);
+    assert.equal(shellSource.includes("grid-template-columns: minmax(0, 1fr)"), true);
+    assert.equal(shellSource.includes("sidebar main"), false);
+    assert.equal(shellSource.includes("align-items: start"), true);
   });
 });

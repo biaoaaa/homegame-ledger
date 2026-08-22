@@ -135,6 +135,7 @@ const translations = {
 };
 let state = null;
 let errorMessage = "";
+let entryIdentity = null;
 let hasAccess = readAccess();
 let hasAdminAccess = readAdminAccess();
 let activeView = "games";
@@ -146,6 +147,9 @@ function t(key) {
 
 function setState(nextState) {
   state = nextState;
+  if (!entryIdentity && state.selectedPlayerId) {
+    entryIdentity = state.selectedPlayerId;
+  }
   errorMessage = "";
   render();
 }
@@ -211,6 +215,7 @@ function render() {
 
 function renderPinGate() {
   const player = selectedPlayer();
+  const selectedIdentity = entryIdentity || player?.id || "";
 
   return `
     <main class="pin-screen">
@@ -227,13 +232,13 @@ function renderPinGate() {
           <label class="field">
             <span>${t("selectWho")}</span>
             <select id="pinPlayerSelect" name="playerId" autofocus>
-              <option value="" ${player ? "" : "selected"}>${t("selectName")}</option>
-              <option value="__admin__">${t("admin")}</option>
+              <option value="" ${selectedIdentity ? "" : "selected"}>${t("selectName")}</option>
+              <option value="__admin__" ${entryIdentity === "__admin__" ? "selected" : ""}>${t("admin")}</option>
               ${state.players
                 .filter((option) => !option.hiddenAt)
                 .map(
                   (option) =>
-                    `<option value="${option.id}" ${option.id === player?.id ? "selected" : ""}>${escapeHtml(option.name)}</option>`
+                    `<option value="${option.id}" ${option.id === selectedIdentity ? "selected" : ""}>${escapeHtml(option.name)}</option>`
                 )
                 .join("")}
             </select>
@@ -264,7 +269,8 @@ function bindPinGate() {
   });
 
   document.querySelector("#pinPlayerSelect")?.addEventListener("change", (event) => {
-    state.selectedPlayerId = event.target.value || null;
+    entryIdentity = event.target.value || null;
+    state.selectedPlayerId = entryIdentity === "__admin__" ? null : entryIdentity;
     rememberSelectedPlayer(state.selectedPlayerId);
     render();
   });
@@ -278,6 +284,7 @@ function bindPinGate() {
       );
       if (player) {
         nextState.selectedPlayerId = player.id;
+        entryIdentity = player.id;
         rememberSelectedPlayer(player.id);
       }
       setState(nextState);
@@ -287,7 +294,7 @@ function bindPinGate() {
   document.querySelector("#pinForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const playerId = String(form.get("playerId") || "").trim();
+    const playerId = String(entryIdentity || form.get("playerId") || "").trim();
     if (!playerId) {
       errorMessage = t("selectName");
       render();

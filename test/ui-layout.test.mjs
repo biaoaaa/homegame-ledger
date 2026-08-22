@@ -62,7 +62,11 @@ describe("game detail layout", () => {
 
     assert.equal(appSource.includes('const ADMIN_PIN = "924"'), true);
     assert.equal(gateSource.includes('value="__admin__"'), true);
+    assert.equal(appSource.includes('let entryIdentity = "__admin__"'), false);
+    assert.equal(appSource.includes("let entryIdentity ="), true);
+    assert.equal(gateSource.includes('value="__admin__" ${entryIdentity === "__admin__" ? "selected" : ""}'), true);
     assert.equal(bindGateSource.includes("ADMIN_PIN"), true);
+    assert.equal(bindGateSource.includes("entryIdentity = event.target.value || null"), true);
     assert.equal(appSource.includes("function renderAdminView"), true);
     assert.equal(appSource.includes("hideRemotePlayer"), true);
     assert.equal(appSource.includes("[data-admin-delete-game]"), true);

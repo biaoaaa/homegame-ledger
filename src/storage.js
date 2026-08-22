@@ -112,6 +112,14 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
   );
 }
 
+export async function hideRemotePlayer(playerId) {
+  return withLocalSelection(
+    await requestJson(`/api/players/${playerId}/hide`, {
+      method: "POST"
+    })
+  );
+}
+
 function withLocalSelection(state) {
   applyStoredDonations(state);
   state.selectedPlayerId = readSelectedPlayer() || state.selectedPlayerId;

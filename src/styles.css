@@ -364,6 +364,18 @@ h2 {
   width: 100%;
 }
 
+.admin-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-note {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .leader-row,
 .entry-row,
 .game-item {

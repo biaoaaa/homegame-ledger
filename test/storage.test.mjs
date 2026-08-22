@@ -96,3 +96,16 @@ describe("submitted donation fallback", () => {
     delete global.window;
   });
 });
+
+describe("hidden players", () => {
+  it("keeps hidden players in state so historical entries can still show their names", async () => {
+    const { applyStoredDonations } = await import("../src/storage.js");
+    const state = {
+      players: [{ id: "p1", name: "Old Player", hiddenAt: "2026-08-22T00:00:00.000Z" }],
+      entries: [{ gameId: "g1", playerId: "p1", amount: 100 }],
+      selectedPlayerId: null
+    };
+
+    assert.equal(applyStoredDonations(state).players[0].hiddenAt, "2026-08-22T00:00:00.000Z");
+  });
+});

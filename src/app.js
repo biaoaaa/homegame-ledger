@@ -18,6 +18,7 @@ import {
   createGame,
   createPlayer,
   deleteRemoteGame,
+  hideRemotePlayer,
   joinRemoteGame,
   loadState,
   rememberSelectedPlayer,
@@ -28,18 +29,23 @@ import {
 const quickAmounts = getQuickAmounts();
 const app = document.querySelector("#app");
 const ACCESS_PIN = "429";
+const ADMIN_PIN = "924";
 const ACCESS_KEY = "homegame-ledger:pin-ok";
+const ADMIN_ACCESS_KEY = "homegame-ledger:admin-ok";
 const LANGUAGE_KEY = "homegame-ledger:language";
 const translations = {
   zh: {
     add: "添加",
     addPlayerPlaceholder: "新玩家名字",
+    admin: "Admin",
+    adminTitle: "Admin 管理",
     amountInvalid: "输赢金额只能输入数字，可以带 + 或 -，比如 +500 / -2000。",
     balance: "合计",
     balanced: "已平账",
     currentPlayer: "当前玩家",
     date: "日期",
     deleteGame: "删除对局",
+    hideUser: "隐藏用户",
     donation: "本局捐献",
     donationBoard: "捐献榜 Top 3",
     donationEmpty: "还没有捐献记录",
@@ -54,6 +60,7 @@ const translations = {
     historyEmpty: "还没有历史对局",
     historyLabel: "历史对局",
     historyTab: "历史",
+    hiddenUserNote: "隐藏后不会出现在登录名单里，历史记录仍保留名字。",
     inProgress: "进行中",
     joinBody: "先入局，之后再填写这一局的输赢。",
     joinTitle: "{name} 还没进入这局",
@@ -79,12 +86,15 @@ const translations = {
   en: {
     add: "Add",
     addPlayerPlaceholder: "New player name",
+    admin: "Admin",
+    adminTitle: "Admin",
     amountInvalid: "Win/loss must be a number, optionally with + or -, like +500 / -2000.",
     balance: "Balance",
     balanced: "Settled",
     currentPlayer: "Current player",
     date: "Date",
     deleteGame: "Delete game",
+    hideUser: "Hide user",
     donation: "Donation",
     donationBoard: "Donation Top 3",
     donationEmpty: "No donation records yet",
@@ -99,6 +109,7 @@ const translations = {
     historyEmpty: "No past games yet",
     historyLabel: "Past games",
     historyTab: "History",
+    hiddenUserNote: "Hidden users disappear from login, but historical records keep their names.",
     inProgress: "In progress",
     joinBody: "Join this game first, then enter your result.",
     joinTitle: "{name} has not joined this game",
@@ -125,6 +136,7 @@ const translations = {
 let state = null;
 let errorMessage = "";
 let hasAccess = readAccess();
+let hasAdminAccess = readAdminAccess();
 let activeView = "games";
 let language = readLanguage();
 
@@ -170,6 +182,12 @@ function render() {
     return;
   }
 
+  if (hasAdminAccess) {
+    app.innerHTML = renderAdminView();
+    bindAdminEvents();
+    return;
+  }
+
   if (!hasAccess || !selectedPlayer()) {
     app.innerHTML = renderPinGate();
     bindPinGate();
@@ -210,7 +228,9 @@ function renderPinGate() {
             <span>${t("selectWho")}</span>
             <select id="pinPlayerSelect" name="playerId" autofocus>
               <option value="" ${player ? "" : "selected"}>${t("selectName")}</option>
+              <option value="__admin__">${t("admin")}</option>
               ${state.players
+                .filter((option) => !option.hiddenAt)
                 .map(
                   (option) =>
                     `<option value="${option.id}" ${option.id === player?.id ? "selected" : ""}>${escapeHtml(option.name)}</option>`
@@ -275,6 +295,22 @@ function bindPinGate() {
     }
 
     const pin = String(form.get("pin") || "").trim();
+    if (playerId === "__admin__") {
+      if (pin !== ADMIN_PIN) {
+        errorMessage = t("pinWrong");
+        render();
+        return;
+      }
+
+      hasAdminAccess = true;
+      hasAccess = false;
+      state.selectedPlayerId = null;
+      rememberSelectedPlayer(null);
+      rememberAdminAccess();
+      render();
+      return;
+    }
+
     if (pin !== ACCESS_PIN) {
       errorMessage = t("pinWrong");
       render();
@@ -299,6 +335,73 @@ function renderError() {
       <span>${escapeHtml(errorMessage)}</span>
     </div>
   `;
+}
+
+function renderAdminView() {
+  return `
+    <div class="shell">
+      ${renderError()}
+      <main class="main">
+        <section class="panel admin-panel">
+          <div class="section-head">
+            <h2>${t("adminTitle")}</h2>
+            <span>${state.players.filter((player) => !player.hiddenAt).length} users</span>
+          </div>
+          <div class="admin-grid">
+            <div class="leaderboard">
+              <h3>${t("historyLabel")}</h3>
+              ${sortGames(state.games)
+                .map(
+                  (game) => `
+                    <div class="entry-row">
+                      <span>
+                        <strong>${escapeHtml(formatGameTitleWithWeekday(game))}</strong>
+                        <small>${game.status === "locked" ? t("locked") : t("inProgress")}</small>
+                      </span>
+                      <button class="danger-action" data-admin-delete-game="${game.id}" type="button">${t("deleteGame")}</button>
+                    </div>
+                  `
+                )
+                .join("") || `<div class="empty-state compact">${t("historyEmpty")}</div>`}
+            </div>
+            <div class="leaderboard">
+              <h3>${t("selectWho")}</h3>
+              <p class="admin-note">${t("hiddenUserNote")}</p>
+              ${state.players
+                .filter((player) => !player.hiddenAt)
+                .map(
+                  (player) => `
+                    <div class="entry-row">
+                      <span><strong>${escapeHtml(player.name)}</strong></span>
+                      <button class="danger-action" data-admin-hide-player="${player.id}" type="button">${t("hideUser")}</button>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  `;
+}
+
+function bindAdminEvents() {
+  document.querySelectorAll("[data-admin-delete-game]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const game = state.games.find((item) => item.id === button.dataset.adminDeleteGame);
+      if (!game || !window.confirm(`${t("deleteGame")} ${formatGameTitleWithWeekday(game)}?`)) return;
+      runAction(async () => setState(await deleteRemoteGame(game.id, null)));
+    });
+  });
+
+  document.querySelectorAll("[data-admin-hide-player]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const player = state.players.find((item) => item.id === button.dataset.adminHidePlayer);
+      if (!player || !window.confirm(`${t("hideUser")} ${player.name}?`)) return;
+      runAction(async () => setState(await hideRemotePlayer(player.id)));
+    });
+  });
 }
 
 function renderViewTabs() {
@@ -751,6 +854,23 @@ function readAccess() {
 function rememberAccess() {
   try {
     window.sessionStorage?.setItem(ACCESS_KEY, "1");
+  } catch {
+    // Session remember is best-effort.
+  }
+}
+
+function readAdminAccess() {
+  try {
+    return window.sessionStorage?.getItem(ADMIN_ACCESS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function rememberAdminAccess() {
+  try {
+    window.sessionStorage?.setItem(ADMIN_ACCESS_KEY, "1");
+    window.sessionStorage?.removeItem(ACCESS_KEY);
   } catch {
     // Session remember is best-effort.
   }

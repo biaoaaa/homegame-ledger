@@ -52,6 +52,23 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("t(\"enter\")"), true);
   });
 
+  it("lets admin enter with a separate pin and manage games and hidden users", () => {
+    const gateStart = appSource.indexOf("function renderPinGate");
+    const gateEnd = appSource.indexOf("function bindPinGate");
+    const gateSource = appSource.slice(gateStart, gateEnd);
+    const bindGateStart = appSource.indexOf("function bindPinGate");
+    const bindGateEnd = appSource.indexOf("function renderError");
+    const bindGateSource = appSource.slice(bindGateStart, bindGateEnd);
+
+    assert.equal(appSource.includes('const ADMIN_PIN = "924"'), true);
+    assert.equal(gateSource.includes('value="__admin__"'), true);
+    assert.equal(bindGateSource.includes("ADMIN_PIN"), true);
+    assert.equal(appSource.includes("function renderAdminView"), true);
+    assert.equal(appSource.includes("hideRemotePlayer"), true);
+    assert.equal(appSource.includes("[data-admin-delete-game]"), true);
+    assert.equal(appSource.includes("[data-admin-hide-player]"), true);
+  });
+
   it("moves leaderboard into a separate main tab", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");

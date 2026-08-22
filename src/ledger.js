@@ -34,6 +34,7 @@ export function createInitialState() {
     players: DEFAULT_PLAYERS.map((name) => ({
       id: createId("player"),
       name,
+      hiddenAt: null,
       createdAt: new Date().toISOString()
     })),
     games: [],
@@ -233,6 +234,7 @@ export function addPlayer(state, name) {
   const player = {
     id: createId("player"),
     name: cleanName,
+    hiddenAt: null,
     createdAt: new Date().toISOString()
   };
   state.players.push(player);

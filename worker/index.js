@@ -51,18 +51,30 @@ async function handleApi(request, env, url) {
     if (!name) return json({ error: "Player name is required" }, 400);
 
     const players = await db.get(
-      `/players?room_id=eq.${encodeURIComponent(room.id)}&select=id,name`
+      `/players?room_id=eq.${encodeURIComponent(room.id)}&select=id,name,hidden_at`
     );
     const existingPlayer = players.find(
       (player) => player.name.toLowerCase() === name.toLowerCase()
     );
 
-    if (!existingPlayer) {
+    if (existingPlayer?.hidden_at) {
+      await db.patch(`/players?id=eq.${encodeURIComponent(existingPlayer.id)}`, {
+        hidden_at: null
+      });
+    } else if (!existingPlayer) {
       await db.post("/players", {
         room_id: room.id,
         name
       });
     }
+    return json(await loadState(db, room.id));
+  }
+
+  const hidePlayerMatch = path.match(/^\/api\/players\/([^/]+)\/hide$/);
+  if (request.method === "POST" && hidePlayerMatch) {
+    await db.patch(`/players?id=eq.${encodeURIComponent(hidePlayerMatch[1])}`, {
+      hidden_at: new Date().toISOString()
+    });
     return json(await loadState(db, room.id));
   }
 
@@ -200,6 +212,7 @@ async function loadState(db, roomId, selectedGameId = null, selectedPlayerId = n
     players: players.map((player) => ({
       id: player.id,
       name: player.name,
+      hiddenAt: player.hidden_at || null,
       createdAt: player.created_at
     })),
     games: games.map((game) => ({

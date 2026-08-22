@@ -207,12 +207,25 @@ describe("game detail layout", () => {
 
   it("asks for confirmation before unlocking a game", () => {
     const lockStart = appSource.indexOf('document.querySelector("#toggleLock")');
-    const lockEnd = appSource.indexOf('document.querySelector("#deleteGame")');
+    const lockEnd = appSource.indexOf("function amountClass");
     const lockSource = appSource.slice(lockStart, lockEnd);
 
     assert.equal(lockSource.includes('game.status === "locked"'), true);
     assert.equal(lockSource.includes("window.confirm"), true);
     assert.equal(lockSource.includes("if (!confirmed) return"), true);
+  });
+
+  it("keeps delete game controls admin-only", () => {
+    const detailStart = appSource.indexOf("function renderGameDetail");
+    const detailEnd = appSource.indexOf("function renderParticipationControl");
+    const detailSource = appSource.slice(detailStart, detailEnd);
+    const normalEventsStart = appSource.indexOf("function bindEvents");
+    const normalEventsEnd = appSource.indexOf("function amountClass");
+    const normalEventsSource = appSource.slice(normalEventsStart, normalEventsEnd);
+
+    assert.equal(detailSource.includes('id="deleteGame"'), false);
+    assert.equal(normalEventsSource.includes('document.querySelector("#deleteGame")'), false);
+    assert.equal(appSource.includes("[data-admin-delete-game]"), true);
   });
 
   it("keeps the main app layout in one column after identity moves to entry", () => {

@@ -659,7 +659,6 @@ function renderGameDetail({ showEmpty = true } = {}) {
         </button>
         <div class="detail-actions">
           <button id="toggleLock">${isLocked ? t("unlockGame") : t("lockGame")}</button>
-          <button id="deleteGame" class="danger-action">${t("deleteGame")}</button>
         </div>
       </div>
 
@@ -845,15 +844,6 @@ function bindEvents() {
     });
   });
 
-  document.querySelector("#deleteGame")?.addEventListener("click", () => {
-    const game = selectedGame();
-    if (!game) return;
-
-    const confirmed = window.confirm(`删除 ${game.title}？这一局的输赢记录也会一起删除。`);
-    if (!confirmed) return;
-
-    runAction(async () => setState(await deleteRemoteGame(game.id, state.selectedPlayerId)));
-  });
 }
 
 function amountClass(amount) {

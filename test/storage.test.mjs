@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 import { applyStoredDonations, applySubmittedDonation, resolveApiOrigin } from "../src/storage.js";
@@ -107,5 +108,12 @@ describe("hidden players", () => {
     };
 
     assert.equal(applyStoredDonations(state).players[0].hiddenAt, "2026-08-22T00:00:00.000Z");
+  });
+
+  it("exposes a restore player operation", async () => {
+    const source = readFileSync(new URL("../src/storage.js", import.meta.url), "utf8");
+
+    assert.equal(source.includes("export async function restoreRemotePlayer"), true);
+    assert.equal(source.includes("/restore"), true);
   });
 });

@@ -22,6 +22,7 @@ import {
   joinRemoteGame,
   loadState,
   rememberSelectedPlayer,
+  restoreRemotePlayer,
   saveEntry,
   updateGameStatus
 } from "./storage.js";
@@ -39,6 +40,7 @@ const translations = {
     addPlayerPlaceholder: "新玩家名字",
     admin: "Admin",
     adminTitle: "Admin 管理",
+    activeUsers: "可登录用户",
     amountInvalid: "输赢金额只能输入数字，可以带 + 或 -，比如 +500 / -2000。",
     balance: "合计",
     balanced: "已平账",
@@ -61,6 +63,7 @@ const translations = {
     historyLabel: "历史对局",
     historyTab: "历史",
     hiddenUserNote: "隐藏后不会出现在登录名单里，历史记录仍保留名字。",
+    hiddenUsers: "已隐藏用户",
     inProgress: "进行中",
     joinBody: "先入局，之后再填写这一局的输赢。",
     joinTitle: "{name} 还没进入这局",
@@ -73,6 +76,7 @@ const translations = {
     noWinRecords: "还没有赢钱记录",
     pin: "房间 PIN",
     pinWrong: "PIN 不对",
+    restoreUser: "恢复用户",
     selectName: "先选择你的名字",
     selectWho: "我是谁",
     saveResult: "保存本局记录",
@@ -88,6 +92,7 @@ const translations = {
     addPlayerPlaceholder: "New player name",
     admin: "Admin",
     adminTitle: "Admin",
+    activeUsers: "Active users",
     amountInvalid: "Win/loss must be a number, optionally with + or -, like +500 / -2000.",
     balance: "Balance",
     balanced: "Settled",
@@ -110,6 +115,7 @@ const translations = {
     historyLabel: "Past games",
     historyTab: "History",
     hiddenUserNote: "Hidden users disappear from login, but historical records keep their names.",
+    hiddenUsers: "Hidden users",
     inProgress: "In progress",
     joinBody: "Join this game first, then enter your result.",
     joinTitle: "{name} has not joined this game",
@@ -122,6 +128,7 @@ const translations = {
     noWinRecords: "No winning records yet",
     pin: "Room PIN",
     pinWrong: "Wrong PIN",
+    restoreUser: "Restore user",
     selectName: "Choose your name first",
     selectWho: "Who am I?",
     saveResult: "Save result",
@@ -345,6 +352,9 @@ function renderError() {
 }
 
 function renderAdminView() {
+  const activePlayers = state.players.filter((player) => !player.hiddenAt);
+  const hiddenPlayers = state.players.filter((player) => player.hiddenAt);
+
   return `
     <div class="shell">
       ${renderError()}
@@ -352,7 +362,7 @@ function renderAdminView() {
         <section class="panel admin-panel">
           <div class="section-head">
             <h2>${t("adminTitle")}</h2>
-            <span>${state.players.filter((player) => !player.hiddenAt).length} users</span>
+            <span>${activePlayers.length} users</span>
           </div>
           <div class="admin-grid">
             <div class="leaderboard">
@@ -372,10 +382,9 @@ function renderAdminView() {
                 .join("") || `<div class="empty-state compact">${t("historyEmpty")}</div>`}
             </div>
             <div class="leaderboard">
-              <h3>${t("selectWho")}</h3>
+              <h3>${t("activeUsers")}</h3>
               <p class="admin-note">${t("hiddenUserNote")}</p>
-              ${state.players
-                .filter((player) => !player.hiddenAt)
+              ${activePlayers
                 .map(
                   (player) => `
                     <div class="entry-row">
@@ -385,6 +394,19 @@ function renderAdminView() {
                   `
                 )
                 .join("")}
+            </div>
+            <div class="leaderboard">
+              <h3>${t("hiddenUsers")}</h3>
+              ${hiddenPlayers
+                .map(
+                  (player) => `
+                    <div class="entry-row">
+                      <span><strong>${escapeHtml(player.name)}</strong></span>
+                      <button data-admin-restore-player="${player.id}" type="button">${t("restoreUser")}</button>
+                    </div>
+                  `
+                )
+                .join("") || `<div class="empty-state compact">${t("hiddenUsers")}: 0</div>`}
             </div>
           </div>
         </section>
@@ -405,10 +427,26 @@ function bindAdminEvents() {
   document.querySelectorAll("[data-admin-hide-player]").forEach((button) => {
     button.addEventListener("click", () => {
       const player = state.players.find((item) => item.id === button.dataset.adminHidePlayer);
-      if (!player || !window.confirm(`${t("hideUser")} ${player.name}?`)) return;
+      const gameTitles = player ? getPlayerGameTitles(player.id) : [];
+      const gameList = gameTitles.length ? `\n\n${gameTitles.join("\n")}` : "";
+      if (!player || !window.confirm(`${t("hideUser")} ${player.name}?${gameList}`)) return;
       runAction(async () => setState(await hideRemotePlayer(player.id)));
     });
   });
+
+  document.querySelectorAll("[data-admin-restore-player]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const player = state.players.find((item) => item.id === button.dataset.adminRestorePlayer);
+      if (!player || !window.confirm(`${t("restoreUser")} ${player.name}?`)) return;
+      runAction(async () => setState(await restoreRemotePlayer(player.id)));
+    });
+  });
+}
+
+function getPlayerGameTitles(playerId) {
+  return sortGames(state.games)
+    .filter((game) => getGameEntries(state, game.id).some((row) => row.player.id === playerId))
+    .map((game) => formatGameTitleWithWeekday(game));
 }
 
 function renderViewTabs() {

@@ -78,6 +78,14 @@ async function handleApi(request, env, url) {
     return json(await loadState(db, room.id));
   }
 
+  const restorePlayerMatch = path.match(/^\/api\/players\/([^/]+)\/restore$/);
+  if (request.method === "POST" && restorePlayerMatch) {
+    await db.patch(`/players?id=eq.${encodeURIComponent(restorePlayerMatch[1])}`, {
+      hidden_at: null
+    });
+    return json(await loadState(db, room.id));
+  }
+
   if (request.method === "POST" && path === "/api/games") {
     const body = await readJson(request);
     const date = body.date || todayISO();

@@ -120,6 +120,14 @@ export async function hideRemotePlayer(playerId) {
   );
 }
 
+export async function restoreRemotePlayer(playerId) {
+  return withLocalSelection(
+    await requestJson(`/api/players/${playerId}/restore`, {
+      method: "POST"
+    })
+  );
+}
+
 function withLocalSelection(state) {
   applyStoredDonations(state);
   state.selectedPlayerId = readSelectedPlayer() || state.selectedPlayerId;

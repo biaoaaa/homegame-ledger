@@ -69,8 +69,12 @@ describe("game detail layout", () => {
     assert.equal(bindGateSource.includes("entryIdentity = event.target.value || null"), true);
     assert.equal(appSource.includes("function renderAdminView"), true);
     assert.equal(appSource.includes("hideRemotePlayer"), true);
+    assert.equal(appSource.includes("restoreRemotePlayer"), true);
     assert.equal(appSource.includes("[data-admin-delete-game]"), true);
     assert.equal(appSource.includes("[data-admin-hide-player]"), true);
+    assert.equal(appSource.includes("[data-admin-restore-player]"), true);
+    assert.equal(appSource.includes("getPlayerGameTitles"), true);
+    assert.equal(appSource.includes("hiddenPlayers"), true);
   });
 
   it("moves leaderboard into a separate main tab", () => {

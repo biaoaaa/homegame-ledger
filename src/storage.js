@@ -113,19 +113,29 @@ export async function deleteRemoteGame(gameId, selectedPlayerId) {
 }
 
 export async function hideRemotePlayer(playerId) {
-  return withLocalSelection(
+  const state = withLocalSelection(
     await requestJson(`/api/players/${playerId}/hide`, {
       method: "POST"
     })
   );
+  const player = state.players.find((item) => item.id === playerId);
+  if (!player?.hiddenAt) {
+    throw new Error("Hide user did not update the database. Try refreshing and hiding again.");
+  }
+  return state;
 }
 
 export async function restoreRemotePlayer(playerId) {
-  return withLocalSelection(
+  const state = withLocalSelection(
     await requestJson(`/api/players/${playerId}/restore`, {
       method: "POST"
     })
   );
+  const player = state.players.find((item) => item.id === playerId);
+  if (player?.hiddenAt) {
+    throw new Error("Restore user did not update the database. Try refreshing and restoring again.");
+  }
+  return state;
 }
 
 function withLocalSelection(state) {

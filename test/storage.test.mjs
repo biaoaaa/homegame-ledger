@@ -115,5 +115,7 @@ describe("hidden players", () => {
 
     assert.equal(source.includes("export async function restoreRemotePlayer"), true);
     assert.equal(source.includes("/restore"), true);
+    assert.equal(source.includes("Hide user did not update the database"), true);
+    assert.equal(source.includes("Restore user did not update the database"), true);
   });
 });

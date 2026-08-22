@@ -30,7 +30,26 @@ describe("game detail layout", () => {
     assert.equal(gateSource.includes('id="pinAddPlayer"'), true);
     assert.equal(bindGateSource.includes('document.querySelector("#pinAddPlayer")'), true);
     assert.equal(bindGateSource.includes("createPlayer"), true);
-    assert.equal(bindGateSource.includes("先选择你的名字"), true);
+    assert.equal(bindGateSource.includes('t("selectName")'), true);
+  });
+
+  it("provides a Chinese and English language toggle from the entry gate", () => {
+    const gateStart = appSource.indexOf("function renderPinGate");
+    const gateEnd = appSource.indexOf("function bindPinGate");
+    const gateSource = appSource.slice(gateStart, gateEnd);
+    const bindGateStart = appSource.indexOf("function bindPinGate");
+    const bindGateEnd = appSource.indexOf("function renderError");
+    const bindGateSource = appSource.slice(bindGateStart, bindGateEnd);
+
+    assert.equal(appSource.includes('const LANGUAGE_KEY = "homegame-ledger:language"'), true);
+    assert.equal(appSource.includes("const translations = {"), true);
+    assert.equal(gateSource.includes('class="language-toggle"'), true);
+    assert.equal(gateSource.includes('data-language="zh"'), true);
+    assert.equal(gateSource.includes('data-language="en"'), true);
+    assert.equal(bindGateSource.includes('document.querySelectorAll("[data-language]")'), true);
+    assert.equal(bindGateSource.includes("rememberLanguage"), true);
+    assert.equal(appSource.includes("t(\"gamesTab\")"), true);
+    assert.equal(appSource.includes("t(\"enter\")"), true);
   });
 
   it("moves leaderboard into a separate main tab", () => {
@@ -137,7 +156,7 @@ describe("game detail layout", () => {
     const detailEnd = appSource.indexOf("function renderParticipationControl");
     const detailSource = appSource.slice(detailStart, detailEnd);
 
-    assert.equal(detailSource.includes("捐赠金额"), true);
+    assert.equal(detailSource.includes('t("donationLabel")'), true);
     assert.equal(detailSource.includes("捐献 ${formatPlainAmount(donationAmount)}"), false);
   });
 

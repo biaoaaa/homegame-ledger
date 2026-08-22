@@ -29,10 +29,108 @@ const quickAmounts = getQuickAmounts();
 const app = document.querySelector("#app");
 const ACCESS_PIN = "429";
 const ACCESS_KEY = "homegame-ledger:pin-ok";
+const LANGUAGE_KEY = "homegame-ledger:language";
+const translations = {
+  zh: {
+    add: "添加",
+    addPlayerPlaceholder: "新玩家名字",
+    amountInvalid: "输赢金额只能输入数字，可以带 + 或 -，比如 +500 / -2000。",
+    balance: "合计",
+    balanced: "已平账",
+    currentPlayer: "当前玩家",
+    date: "日期",
+    deleteGame: "删除对局",
+    donation: "本局捐献",
+    donationBoard: "捐献榜 Top 3",
+    donationEmpty: "还没有捐献记录",
+    donationInvalid: "捐献金额只能输入 0 或正整数。",
+    donationLabel: "捐赠金额",
+    emptyDetailBody: "记录每个人最终买入、带走之后的净输赢。",
+    emptyDetailTitle: "选择或新建一局",
+    enter: "进入",
+    enterGame: "进入对局",
+    errorTitle: "操作失败",
+    gamesTab: "对局",
+    historyEmpty: "还没有历史对局",
+    historyLabel: "历史对局",
+    historyTab: "历史",
+    inProgress: "进行中",
+    joinBody: "先入局，之后再填写这一局的输赢。",
+    joinTitle: "{name} 还没进入这局",
+    leaderboardTitle: "榜单",
+    leaderboardTab: "榜单",
+    locked: "已锁定",
+    lockGame: "锁定",
+    newGame: "新建对局",
+    needsAdjustment: "还需要",
+    noWinRecords: "还没有赢钱记录",
+    pin: "房间 PIN",
+    pinWrong: "PIN 不对",
+    selectName: "先选择你的名字",
+    selectWho: "我是谁",
+    saveResult: "保存本局记录",
+    topWinBoard: "单局最高胜利 Top 3",
+    totalDonation: "累计捐献",
+    todayEmpty: "今天还没有对局",
+    todayGamesLabel: "今日对局",
+    unlockGame: "解锁",
+    winner: "大赢家"
+  },
+  en: {
+    add: "Add",
+    addPlayerPlaceholder: "New player name",
+    amountInvalid: "Win/loss must be a number, optionally with + or -, like +500 / -2000.",
+    balance: "Balance",
+    balanced: "Settled",
+    currentPlayer: "Current player",
+    date: "Date",
+    deleteGame: "Delete game",
+    donation: "Donation",
+    donationBoard: "Donation Top 3",
+    donationEmpty: "No donation records yet",
+    donationInvalid: "Donation must be 0 or a positive whole number.",
+    donationLabel: "Donation",
+    emptyDetailBody: "Record each player's final net win/loss after buy-ins and cash-out.",
+    emptyDetailTitle: "Select or create a game",
+    enter: "Enter",
+    enterGame: "Join game",
+    errorTitle: "Action failed",
+    gamesTab: "Games",
+    historyEmpty: "No past games yet",
+    historyLabel: "Past games",
+    historyTab: "History",
+    inProgress: "In progress",
+    joinBody: "Join this game first, then enter your result.",
+    joinTitle: "{name} has not joined this game",
+    leaderboardTitle: "Leaderboard",
+    leaderboardTab: "Leaderboard",
+    locked: "Locked",
+    lockGame: "Lock",
+    newGame: "New game",
+    needsAdjustment: "Needs",
+    noWinRecords: "No winning records yet",
+    pin: "Room PIN",
+    pinWrong: "Wrong PIN",
+    selectName: "Choose your name first",
+    selectWho: "Who am I?",
+    saveResult: "Save result",
+    topWinBoard: "Biggest Single-Game Wins Top 3",
+    totalDonation: "Total donation",
+    todayEmpty: "No games today yet",
+    todayGamesLabel: "Today's games",
+    unlockGame: "Unlock",
+    winner: "Winner"
+  }
+};
 let state = null;
 let errorMessage = "";
 let hasAccess = readAccess();
 let activeView = "games";
+let language = readLanguage();
+
+function t(key) {
+  return translations[language]?.[key] ?? translations.zh[key] ?? key;
+}
 
 function setState(nextState) {
   state = nextState;
@@ -44,7 +142,7 @@ async function runAction(action) {
   try {
     await action();
   } catch (error) {
-    errorMessage = error.message || "操作失败";
+    errorMessage = error.message || t("errorTitle");
     render();
   }
 }
@@ -99,13 +197,19 @@ function renderPinGate() {
   return `
     <main class="pin-screen">
       <section class="pin-panel">
-        <p class="eyebrow">Homegame Ledger</p>
+        <div class="pin-topline">
+          <p class="eyebrow">Homegame Ledger</p>
+          <div class="language-toggle" aria-label="Language">
+            <button type="button" data-language="zh" class="${language === "zh" ? "active" : ""}">中</button>
+            <button type="button" data-language="en" class="${language === "en" ? "active" : ""}">EN</button>
+          </div>
+        </div>
         <h1>Homegame Ledger</h1>
         <form id="pinForm" class="pin-form">
           <label class="field">
-            <span>我是谁</span>
+            <span>${t("selectWho")}</span>
             <select id="pinPlayerSelect" name="playerId" autofocus>
-              <option value="" ${player ? "" : "selected"}>先选择你的名字</option>
+              <option value="" ${player ? "" : "selected"}>${t("selectName")}</option>
               ${state.players
                 .map(
                   (option) =>
@@ -115,15 +219,15 @@ function renderPinGate() {
             </select>
           </label>
           <label class="field">
-            <span>房间 PIN</span>
+            <span>${t("pin")}</span>
             <input name="pin" inputmode="numeric" autocomplete="off" />
           </label>
           ${errorMessage ? `<div class="pin-error">${escapeHtml(errorMessage)}</div>` : ""}
-          <button class="primary-action" type="submit">进入</button>
+          <button class="primary-action" type="submit">${t("enter")}</button>
         </form>
         <div class="pin-add-player">
-          <input id="pinNewPlayerName" autocomplete="off" placeholder="新玩家名字" />
-          <button id="pinAddPlayer" type="button">添加</button>
+          <input id="pinNewPlayerName" autocomplete="off" placeholder="${t("addPlayerPlaceholder")}" />
+          <button id="pinAddPlayer" type="button">${t("add")}</button>
         </div>
       </section>
     </main>
@@ -131,6 +235,14 @@ function renderPinGate() {
 }
 
 function bindPinGate() {
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.addEventListener("click", () => {
+      language = button.dataset.language === "en" ? "en" : "zh";
+      rememberLanguage(language);
+      render();
+    });
+  });
+
   document.querySelector("#pinPlayerSelect")?.addEventListener("change", (event) => {
     state.selectedPlayerId = event.target.value || null;
     rememberSelectedPlayer(state.selectedPlayerId);
@@ -157,14 +269,14 @@ function bindPinGate() {
     const form = new FormData(event.currentTarget);
     const playerId = String(form.get("playerId") || "").trim();
     if (!playerId) {
-      errorMessage = "先选择你的名字";
+      errorMessage = t("selectName");
       render();
       return;
     }
 
     const pin = String(form.get("pin") || "").trim();
     if (pin !== ACCESS_PIN) {
-      errorMessage = "PIN 不对";
+      errorMessage = t("pinWrong");
       render();
       return;
     }
@@ -183,7 +295,7 @@ function renderError() {
 
   return `
     <div class="error-banner">
-      <strong>操作失败</strong>
+      <strong>${t("errorTitle")}</strong>
       <span>${escapeHtml(errorMessage)}</span>
     </div>
   `;
@@ -192,9 +304,9 @@ function renderError() {
 function renderViewTabs() {
   return `
     <nav class="view-tabs" aria-label="主视图">
-      <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">对局</button>
-      <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">历史</button>
-      <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">榜单</button>
+      <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">${t("gamesTab")}</button>
+      <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">${t("historyTab")}</button>
+      <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">${t("leaderboardTab")}</button>
     </nav>
   `;
 }
@@ -206,7 +318,7 @@ function renderLeaderboard() {
   return `
     <section class="panel leaderboard-panel">
       <div class="section-head">
-        <h2>榜单</h2>
+        <h2>${t("leaderboardTitle")}</h2>
         <span>${state.games.length} 局</span>
       </div>
       ${renderTopWinBoard(topWins)}
@@ -226,7 +338,7 @@ function renderLeaderboardView() {
 function renderTopWinBoard(rows) {
   return `
     <div class="leaderboard">
-      <h3>单局最高胜利 Top 3</h3>
+      <h3>${t("topWinBoard")}</h3>
       ${
         rows.length
           ? rows
@@ -239,7 +351,7 @@ function renderTopWinBoard(rows) {
                 `
               )
               .join("")
-          : `<div class="empty-state compact">还没有赢钱记录</div>`
+          : `<div class="empty-state compact">${t("noWinRecords")}</div>`
       }
     </div>
   `;
@@ -248,20 +360,20 @@ function renderTopWinBoard(rows) {
 function renderDonationBoard(rows) {
   return `
     <div class="leaderboard">
-      <h3>捐献榜 Top 3</h3>
+      <h3>${t("donationBoard")}</h3>
       ${
         rows.length
           ? rows
               .map(
                 (row, index) => `
                   <div class="leader-row">
-                    <span><strong>${index + 1}. ${escapeHtml(row.playerName)}</strong><small>累计捐献</small></span>
+                    <span><strong>${index + 1}. ${escapeHtml(row.playerName)}</strong><small>${t("totalDonation")}</small></span>
                     <strong class="donation-amount">${formatPlainAmount(row.amount)}</strong>
                   </div>
                 `
               )
               .join("")
-          : `<div class="empty-state compact">还没有捐献记录</div>`
+          : `<div class="empty-state compact">${t("donationEmpty")}</div>`
       }
     </div>
   `;
@@ -275,15 +387,15 @@ function renderGames() {
     <section class="toolbar">
       <div>
         <p class="eyebrow">${formatDateWithWeekday(today)}</p>
-        <h2>对局</h2>
+        <h2>${t("gamesTab")}</h2>
       </div>
       <form id="createGameForm" class="create-game-form">
         <label class="date-field">
-          <span>日期</span>
+          <span>${t("date")}</span>
           <input id="gameDate" name="date" type="date" value="${today}" />
         </label>
         <button type="submit" ${player ? "" : "disabled"}>
-          新建对局
+          ${t("newGame")}
         </button>
       </form>
     </section>
@@ -302,10 +414,10 @@ function renderGamesView() {
 
 function renderRecentGames(games) {
   return `
-    <section class="game-list" aria-label="今日对局">
+    <section class="game-list" aria-label="${t("todayGamesLabel")}">
       ${games
         .map((game) => renderGameButton(game))
-        .join("") || `<div class="empty-state">今天还没有对局</div>`}
+        .join("") || `<div class="empty-state">${t("todayEmpty")}</div>`}
     </section>
   `;
 }
@@ -315,14 +427,14 @@ function renderHistoryView() {
     <section class="toolbar">
       <div>
         <p class="eyebrow">${state.games.length} 局</p>
-        <h2>历史对局</h2>
+        <h2>${t("historyLabel")}</h2>
       </div>
     </section>
     ${renderGameDetail({ showEmpty: false })}
-    <section class="game-list" aria-label="历史对局">
+    <section class="game-list" aria-label="${t("historyLabel")}">
       ${sortGames(state.games)
         .map((game) => renderGameButton(game))
-        .join("") || `<div class="empty-state">还没有历史对局</div>`}
+        .join("") || `<div class="empty-state">${t("historyEmpty")}</div>`}
     </section>
   `;
 }
@@ -336,7 +448,7 @@ function renderGameButton(game) {
     <button class="game-item ${isSelected ? "selected" : ""}" data-game-id="${game.id}">
       <span>
         <strong>${escapeHtml(formatGameTitleWithWeekday(game))}</strong>
-        <small>${game.status === "locked" ? "已锁定" : "进行中"}</small>
+        <small>${game.status === "locked" ? t("locked") : t("inProgress")}</small>
       </span>
       ${summary}
     </button>
@@ -349,10 +461,10 @@ function renderGameCardSummary(game, status) {
   if (winner) {
     return `
       <span class="game-summary">
-        <small>大赢家</small>
+        <small>${t("winner")}</small>
         <strong>${escapeHtml(winner.playerName)}</strong>
         <b class="positive">${formatAmount(winner.amount)}</b>
-        ${status.balanced ? `<em>已平账</em>` : `<em class="unbalanced">${formatAmount(status.total)}</em>`}
+        ${status.balanced ? `<em>${t("balanced")}</em>` : `<em class="unbalanced">${formatAmount(status.total)}</em>`}
       </span>
     `;
   }
@@ -360,7 +472,7 @@ function renderGameCardSummary(game, status) {
   return `
     <span class="game-summary">
       <strong class="${status.balanced ? "balanced" : "unbalanced"}">
-        ${status.balanced ? "已平账" : formatAmount(status.total)}
+        ${status.balanced ? t("balanced") : formatAmount(status.total)}
       </strong>
     </span>
   `;
@@ -372,8 +484,8 @@ function renderGameDetail({ showEmpty = true } = {}) {
   if (!game) {
     return `
       <section class="detail empty-detail">
-        <h2>选择或新建一局</h2>
-        <p>记录每个人最终买入、带走之后的净输赢。</p>
+        <h2>${t("emptyDetailTitle")}</h2>
+        <p>${t("emptyDetailBody")}</p>
       </section>
     `;
   }
@@ -398,15 +510,15 @@ function renderGameDetail({ showEmpty = true } = {}) {
           <h2>${escapeHtml(detailTitle)}</h2>
         </button>
         <div class="detail-actions">
-          <button id="toggleLock">${isLocked ? "解锁" : "锁定"}</button>
-          <button id="deleteGame" class="danger-action">删除对局</button>
+          <button id="toggleLock">${isLocked ? t("unlockGame") : t("lockGame")}</button>
+          <button id="deleteGame" class="danger-action">${t("deleteGame")}</button>
         </div>
       </div>
 
       <div class="balance-strip ${status.balanced ? "ok" : "warn"}">
-        <span>合计</span>
+        <span>${t("balance")}</span>
         <strong>${formatAmount(status.total)}</strong>
-        <small>${status.balanced ? "已平账" : `还需要 ${status.adjustmentLabel}`}</small>
+        <small>${status.balanced ? t("balanced") : `${t("needsAdjustment")} ${status.adjustmentLabel}`}</small>
       </div>
 
       ${renderParticipationControl(player, myEntry, isLocked, isParticipant)}
@@ -418,7 +530,7 @@ function renderGameDetail({ showEmpty = true } = {}) {
               <div class="entry-row">
                 <span>
                   <strong>${escapeHtml(rowPlayer.name)}</strong>
-                  ${donationAmount > 0 ? `<small>捐赠金额 ${formatPlainAmount(donationAmount)}</small>` : ""}
+                  ${donationAmount > 0 ? `<small>${t("donationLabel")} ${formatPlainAmount(donationAmount)}</small>` : ""}
                 </span>
                 <strong class="${amountClass(amount)}">${formatAmount(amount)}</strong>
               </div>
@@ -440,8 +552,8 @@ function renderSelectPlayerPrompt() {
   return `
     <div class="join-panel">
       <div>
-        <strong>先选择你是谁</strong>
-        <span>选择名字后再进入对局或填写输赢。</span>
+        <strong>${t("selectWho")}</strong>
+        <span>${t("selectName")}</span>
       </div>
     </div>
   `;
@@ -451,7 +563,7 @@ function renderEntryForm(player, myEntry, isLocked) {
   return `
     <form id="entryForm" class="entry-form">
       <label class="field">
-        <span>${escapeHtml(player?.name ?? "")} 的输赢</span>
+        <span>${escapeHtml(player?.name ?? "")} ${language === "zh" ? "的输赢" : "win/loss"}</span>
         <input name="amount" inputmode="text" autocapitalize="off" spellcheck="false" value="${myEntry ? formatEntryAmountInput(myEntry.amount) : ""}" placeholder="+500 / -2000" ${isLocked ? "disabled" : ""} />
       </label>
       <div class="quick-grid">
@@ -466,10 +578,10 @@ function renderEntryForm(player, myEntry, isLocked) {
           .join("")}
       </div>
       <label class="field">
-        <span>本局捐献</span>
+        <span>${t("donation")}</span>
         <input name="donationAmount" inputmode="numeric" value="${myEntry ? formatDonationInput(myEntry.donationAmount) : ""}" ${isLocked ? "disabled" : ""} />
       </label>
-      <button class="primary-action" type="submit" ${isLocked ? "disabled" : ""}>保存本局记录</button>
+      <button class="primary-action" type="submit" ${isLocked ? "disabled" : ""}>${t("saveResult")}</button>
     </form>
   `;
 }
@@ -478,10 +590,10 @@ function renderJoinGamePrompt(player, isLocked) {
   return `
     <div class="join-panel">
       <div>
-        <strong>${escapeHtml(player?.name ?? "当前玩家")} 还没进入这局</strong>
-        <span>先入局，之后再填写这一局的输赢。</span>
+        <strong>${t("joinTitle").replace("{name}", escapeHtml(player?.name ?? t("currentPlayer")))}</strong>
+        <span>${t("joinBody")}</span>
       </div>
-      <button id="joinGame" class="primary-action" ${isLocked ? "disabled" : ""}>进入对局</button>
+      <button id="joinGame" class="primary-action" ${isLocked ? "disabled" : ""}>${t("enterGame")}</button>
     </div>
   `;
 }
@@ -524,13 +636,13 @@ function bindEvents() {
     const donationInput = form.get("donationAmount");
 
     if (!isValidAmountInput(amountInput)) {
-      errorMessage = "输赢金额只能输入数字，可以带 + 或 -，比如 +500 / -2000。";
+      errorMessage = t("amountInvalid");
       render();
       return;
     }
 
     if (!isValidAmountInput(donationInput, { allowNegative: false })) {
-      errorMessage = "捐献金额只能输入 0 或正整数。";
+      errorMessage = t("donationInvalid");
       render();
       return;
     }
@@ -641,5 +753,21 @@ function rememberAccess() {
     window.sessionStorage?.setItem(ACCESS_KEY, "1");
   } catch {
     // Session remember is best-effort.
+  }
+}
+
+function readLanguage() {
+  try {
+    return window.sessionStorage?.getItem(LANGUAGE_KEY) === "en" ? "en" : "zh";
+  } catch {
+    return "zh";
+  }
+}
+
+function rememberLanguage(nextLanguage) {
+  try {
+    window.sessionStorage?.setItem(LANGUAGE_KEY, nextLanguage);
+  } catch {
+    // Language preference is best-effort.
   }
 }

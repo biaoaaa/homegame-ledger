@@ -61,6 +61,38 @@ body {
   font-size: 42px;
 }
 
+.pin-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.language-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, 42px);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255, 253, 248, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.08);
+}
+
+.language-toggle button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #d9d0c3;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.language-toggle button.active {
+  background: #fffdf8;
+  color: #171713;
+}
+
 .pin-panel .field span {
   color: #d9d0c3;
 }

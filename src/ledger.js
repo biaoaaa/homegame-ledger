@@ -319,6 +319,38 @@ export function getDonationLeaderboard(state, limit = 3) {
     .slice(0, limit);
 }
 
+export function getRecentGameTotals(state, limit = 10) {
+  const recentGameIds = new Set(
+    sortGames(state.games)
+      .slice(0, limit)
+      .map((game) => game.id)
+  );
+  const playersById = new Map(state.players.map((player) => [player.id, player]));
+  const totals = new Map();
+  const gamesPlayedByPlayer = new Map();
+
+  for (const entry of state.entries) {
+    if (!recentGameIds.has(entry.gameId) || !playersById.has(entry.playerId)) continue;
+
+    totals.set(entry.playerId, (totals.get(entry.playerId) ?? 0) + entry.amount);
+    if (!gamesPlayedByPlayer.has(entry.playerId)) {
+      gamesPlayedByPlayer.set(entry.playerId, new Set());
+    }
+    gamesPlayedByPlayer.get(entry.playerId).add(entry.gameId);
+  }
+
+  return [...gamesPlayedByPlayer.keys()]
+    .map((playerId) => ({
+      playerName: playersById.get(playerId).name,
+      amount: totals.get(playerId) ?? 0,
+      gamesPlayed: gamesPlayedByPlayer.get(playerId).size
+    }))
+    .sort((left, right) => {
+      if (right.amount !== left.amount) return right.amount - left.amount;
+      return left.playerName.localeCompare(right.playerName);
+    });
+}
+
 export function getGameSwingLeaders(state, gameId) {
   const rows = getGameEntries(state, gameId).filter(({ amount }) => amount !== 0);
   if (rows.length === 0) {

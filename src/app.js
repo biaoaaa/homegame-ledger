@@ -6,6 +6,7 @@ import {
   getDonationLeaderboard,
   getGameEntries,
   getGameSwingLeaders,
+  getRecentGameTotals,
   getTopSingleGameWins,
   getQuickAmounts,
   isPlayerInGame,
@@ -77,6 +78,9 @@ const translations = {
     pin: "房间 PIN",
     pinWrong: "PIN 不对",
     restoreUser: "恢复用户",
+    recentEmpty: "还没有最近十局记录",
+    recentTab: "最近十局",
+    recentTitle: "最近十局综合收益",
     selectName: "先选择你的名字",
     selectWho: "我是谁",
     saveResult: "保存本局记录",
@@ -129,6 +133,9 @@ const translations = {
     pin: "Room PIN",
     pinWrong: "Wrong PIN",
     restoreUser: "Restore user",
+    recentEmpty: "No records in the last 10 games yet",
+    recentTab: "Last 10",
+    recentTitle: "Last 10 Game Net",
     selectName: "Choose your name first",
     selectWho: "Who am I?",
     saveResult: "Save result",
@@ -212,7 +219,7 @@ function render() {
       ${renderError()}
       <main class="main">
         ${renderViewTabs()}
-        ${activeView === "history" ? renderHistoryView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
+        ${activeView === "history" ? renderHistoryView() : activeView === "recent" ? renderRecentTotalsView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
       </main>
     </div>
   `;
@@ -454,8 +461,41 @@ function renderViewTabs() {
     <nav class="view-tabs" aria-label="主视图">
       <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">${t("gamesTab")}</button>
       <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">${t("historyTab")}</button>
+      <button type="button" data-view="recent" class="${activeView === "recent" ? "active" : ""}">${t("recentTab")}</button>
       <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">${t("leaderboardTab")}</button>
     </nav>
+  `;
+}
+
+function renderRecentTotalsView() {
+  const rows = getRecentGameTotals(state);
+  const gameCount = Math.min(10, state.games.length);
+
+  return `
+    <section class="leaderboard-view">
+      <section class="panel leaderboard-panel">
+        <div class="section-head">
+          <h2>${t("recentTitle")}</h2>
+          <span>${formatGamesPlayed(gameCount)}</span>
+        </div>
+        <div class="leaderboard">
+          ${
+            rows.length
+              ? rows
+                  .map(
+                    (row, index) => `
+                      <div class="leader-row">
+                        <span><strong>${index + 1}. ${escapeHtml(row.playerName)}</strong><small>${formatGamesPlayed(row.gamesPlayed)}</small></span>
+                        <strong class="${amountClass(row.amount)}">${formatAmount(row.amount)}</strong>
+                      </div>
+                    `
+                  )
+                  .join("")
+              : `<div class="empty-state compact">${t("recentEmpty")}</div>`
+          }
+        </div>
+      </section>
+    </section>
   `;
 }
 
@@ -864,6 +904,12 @@ function formatDonationInput(amount) {
 function formatEntryAmountInput(amount) {
   const numericAmount = Number(amount) || 0;
   return numericAmount === 0 ? "" : formatAmount(numericAmount);
+}
+
+function formatGamesPlayed(count) {
+  const numericCount = Number(count) || 0;
+  if (language === "en") return `${numericCount} ${numericCount === 1 ? "game" : "games"}`;
+  return `${numericCount} 局`;
 }
 
 function escapeHtml(value) {

@@ -147,6 +147,24 @@ describe("game detail layout", () => {
     assert.equal(tabClickSource.includes("state.selectedGameId = null"), true);
   });
 
+  it("refreshes remote state when switching tabs and after saving an entry", () => {
+    const refreshStart = appSource.indexOf("async function refreshState");
+    const refreshEnd = appSource.indexOf("function selectedPlayer");
+    const refreshSource = appSource.slice(refreshStart, refreshEnd);
+    const tabClickStart = appSource.indexOf('document.querySelectorAll("[data-view]")');
+    const tabClickEnd = appSource.indexOf('document.querySelector("#createGameForm")');
+    const tabClickSource = appSource.slice(tabClickStart, tabClickEnd);
+    const formStart = appSource.indexOf('document.querySelector("#entryForm")');
+    const formEnd = appSource.indexOf('document.querySelector("#joinGame")');
+    const formSource = appSource.slice(formStart, formEnd);
+
+    assert.equal(refreshSource.includes("await loadState()"), true);
+    assert.equal(refreshSource.includes("state.selectedGameId = selectedGameId"), true);
+    assert.equal(tabClickSource.includes("await refreshState"), true);
+    assert.equal(formSource.includes("const nextState = await saveEntry"), true);
+    assert.equal(formSource.includes("setState(nextState)"), true);
+  });
+
   it("does not show per-game winner and loser cards in the detail view", () => {
     assert.equal(appSource.includes("swing-grid"), false);
     assert.equal(appSource.includes("本局最大赢"), false);

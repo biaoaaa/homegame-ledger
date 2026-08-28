@@ -165,6 +165,16 @@ describe("game detail layout", () => {
     assert.equal(formSource.includes("setState(nextState)"), true);
   });
 
+  it("shows a success alert after saving an entry", () => {
+    const formStart = appSource.indexOf('document.querySelector("#entryForm")');
+    const formEnd = appSource.indexOf('document.querySelector("#joinGame")');
+    const formSource = appSource.slice(formStart, formEnd);
+
+    assert.equal(appSource.includes('savedEntry: "已经修改好了"'), true);
+    assert.equal(appSource.includes('savedEntry: "Saved"'), true);
+    assert.equal(formSource.includes('window.alert(t("savedEntry"))'), true);
+  });
+
   it("does not show per-game winner and loser cards in the detail view", () => {
     assert.equal(appSource.includes("swing-grid"), false);
     assert.equal(appSource.includes("本局最大赢"), false);

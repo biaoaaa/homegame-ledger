@@ -16,6 +16,7 @@ import {
   getGameSwingLeaders,
   getDonationLeaderboard,
   getPlayerParticipationCount,
+  getRecentGameTotals,
   getTopSingleGameWins,
   isValidAmountInput,
   isPlayerInGame,
@@ -207,6 +208,32 @@ describe("ledger rules", () => {
       { playerName: "Cody", amount: 400 },
       { playerName: "Biao", amount: 300 },
       { playerName: "Jiarou", amount: 50 }
+    ]);
+  });
+
+  it("reports cumulative net results from only the most recent ten games", () => {
+    const state = createInitialState();
+    const thirdPlayer = { id: "player_c", name: "Cody", createdAt: new Date().toISOString() };
+    state.players.push(thirdPlayer);
+
+    const games = Array.from({ length: 11 }, (_, index) =>
+      createGameForDate(state, `2026-08-${String(index + 1).padStart(2, "0")}`)
+    );
+
+    upsertEntry(state, games[0].id, state.players[0].id, 9999);
+    upsertEntry(state, games[0].id, state.players[1].id, -9999);
+
+    for (const game of games.slice(1)) {
+      upsertEntry(state, game.id, state.players[0].id, 100);
+      upsertEntry(state, game.id, state.players[1].id, -50);
+    }
+    upsertEntry(state, games[10].id, thirdPlayer.id, 50);
+    upsertEntry(state, games[9].id, thirdPlayer.id, 50);
+
+    assert.deepEqual(getRecentGameTotals(state, 10), [
+      { playerName: "Biao", amount: 1000, gamesPlayed: 10 },
+      { playerName: "Cody", amount: 100, gamesPlayed: 2 },
+      { playerName: "Jiarou", amount: -500, gamesPlayed: 10 }
     ]);
   });
 

@@ -88,6 +88,19 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("activeView"), true);
   });
 
+  it("shows recent ten game net results in their own main tab", () => {
+    const renderStart = appSource.indexOf("function render()");
+    const renderEnd = appSource.indexOf("function renderPinGate");
+    const renderSource = appSource.slice(renderStart, renderEnd);
+
+    assert.equal(appSource.includes('data-view="recent"'), true);
+    assert.equal(appSource.includes('t("recentTab")'), true);
+    assert.equal(appSource.includes("getRecentGameTotals"), true);
+    assert.equal(appSource.includes("function renderRecentTotalsView"), true);
+    assert.equal(renderSource.includes('activeView === "recent" ? renderRecentTotalsView()'), true);
+    assert.equal(stylesSource.includes("grid-template-columns: repeat(4, minmax(0, 1fr))"), true);
+  });
+
   it("moves historical games into their own main tab", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");

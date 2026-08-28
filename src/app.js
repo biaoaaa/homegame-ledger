@@ -81,6 +81,7 @@ const translations = {
     recentEmpty: "还没有最近十局记录",
     recentTab: "最近十局",
     recentTitle: "最近十局综合收益",
+    savedEntry: "已经修改好了",
     selectName: "先选择你的名字",
     selectWho: "我是谁",
     saveResult: "保存本局记录",
@@ -136,6 +137,7 @@ const translations = {
     recentEmpty: "No records in the last 10 games yet",
     recentTab: "Last 10",
     recentTitle: "Last 10 Game Net",
+    savedEntry: "Saved",
     selectName: "Choose your name first",
     selectWho: "Who am I?",
     saveResult: "Save result",
@@ -860,6 +862,7 @@ function bindEvents() {
         nextState.selectedGameId = game.id;
       }
       setState(nextState);
+      window.alert(t("savedEntry"));
     });
   });
 

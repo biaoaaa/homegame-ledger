@@ -177,6 +177,15 @@ async function runAction(action) {
   }
 }
 
+async function refreshState({ preserveSelectedGame = true } = {}) {
+  const selectedGameId = preserveSelectedGame ? state?.selectedGameId : null;
+  const nextState = await loadState({ fallbackOnError: false });
+  if (selectedGameId && nextState.games.some((game) => game.id === selectedGameId)) {
+    nextState.selectedGameId = selectedGameId;
+  }
+  setState(nextState);
+}
+
 function selectedPlayer() {
   return state.players.find((player) => player.id === state.selectedPlayerId) ?? null;
 }
@@ -788,11 +797,13 @@ function renderJoinGamePrompt(player, isLocked) {
 function bindEvents() {
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.addEventListener("click", () => {
-      activeView = button.dataset.view || "games";
-      if (activeView === "games") {
-        state.selectedGameId = null;
-      }
-      render();
+      runAction(async () => {
+        activeView = button.dataset.view || "games";
+        if (activeView === "games") {
+          state.selectedGameId = null;
+        }
+        await refreshState({ preserveSelectedGame: activeView !== "games" });
+      });
     });
   });
 
@@ -839,14 +850,16 @@ function bindEvents() {
       const player = selectedPlayer();
       if (!game || !player || game.status === "locked") return;
 
-      setState(
-        await saveEntry(
-          game.id,
-          player.id,
-          parseAmountInput(form.get("amount")),
-          Math.max(0, parseAmountInput(form.get("donationAmount")))
-        )
+      const nextState = await saveEntry(
+        game.id,
+        player.id,
+        parseAmountInput(form.get("amount")),
+        Math.max(0, parseAmountInput(form.get("donationAmount")))
       );
+      if (nextState.games.some((item) => item.id === game.id)) {
+        nextState.selectedGameId = game.id;
+      }
+      setState(nextState);
     });
   });
 

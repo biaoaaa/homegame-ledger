@@ -158,8 +158,8 @@ describe("game detail layout", () => {
     const formEnd = appSource.indexOf('document.querySelector("#joinGame")');
     const formSource = appSource.slice(formStart, formEnd);
 
-    assert.equal(refreshSource.includes("await loadState()"), true);
-    assert.equal(refreshSource.includes("state.selectedGameId = selectedGameId"), true);
+    assert.equal(refreshSource.includes("await loadState({ fallbackOnError: false })"), true);
+    assert.equal(refreshSource.includes("nextState.selectedGameId = selectedGameId"), true);
     assert.equal(tabClickSource.includes("await refreshState"), true);
     assert.equal(formSource.includes("const nextState = await saveEntry"), true);
     assert.equal(formSource.includes("setState(nextState)"), true);

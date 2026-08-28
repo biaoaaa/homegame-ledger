@@ -30,11 +30,12 @@ export function resolveApiOrigin(hostname) {
   return hostname === DEPLOYED_HOSTNAME ? "" : REMOTE_API_ORIGIN;
 }
 
-export async function loadState() {
+export async function loadState({ fallbackOnError = true } = {}) {
   try {
     const state = await requestJson("/api/state");
     return withLocalSelection(state);
   } catch (error) {
+    if (!fallbackOnError) throw error;
     console.warn(error);
     return withLocalSelection(createInitialState());
   }

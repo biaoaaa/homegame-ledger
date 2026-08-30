@@ -351,6 +351,50 @@ export function getRecentGameTotals(state, limit = 10) {
     });
 }
 
+export function getRecentGameTrend(state, limit = 10) {
+  const games = sortGames(state.games).slice(0, limit).reverse();
+  const playersById = new Map(state.players.map((player) => [player.id, player]));
+  const entriesByGameAndPlayer = new Map();
+  const participatingPlayerIds = new Set();
+
+  for (const entry of state.entries) {
+    if (!games.some((game) => game.id === entry.gameId) || !playersById.has(entry.playerId)) {
+      continue;
+    }
+
+    entriesByGameAndPlayer.set(`${entry.gameId}:${entry.playerId}`, entry);
+    participatingPlayerIds.add(entry.playerId);
+  }
+
+  const series = [...participatingPlayerIds]
+    .map((playerId) => {
+      let runningTotal = 0;
+      const points = games.map((game) => {
+        const entry = entriesByGameAndPlayer.get(`${game.id}:${playerId}`);
+        runningTotal += entry?.amount ?? 0;
+        return runningTotal;
+      });
+
+      return {
+        playerName: playersById.get(playerId).name,
+        total: runningTotal,
+        points
+      };
+    })
+    .sort((left, right) => {
+      if (right.total !== left.total) return right.total - left.total;
+      return left.playerName.localeCompare(right.playerName);
+    });
+
+  return {
+    games: games.map((game) => ({
+      id: game.id,
+      label: formatGameTitleWithWeekday(game)
+    })),
+    series
+  };
+}
+
 export function getGameSwingLeaders(state, gameId) {
   const rows = getGameEntries(state, gameId).filter(({ amount }) => amount !== 0);
   if (rows.length === 0) {

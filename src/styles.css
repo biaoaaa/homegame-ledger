@@ -364,6 +364,85 @@ h2 {
   width: 100%;
 }
 
+.trend-panel {
+  margin-top: 14px;
+}
+
+.trend-panel summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.trend-chart {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.trend-chart svg {
+  width: 100%;
+  min-height: 220px;
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.trend-axis {
+  stroke: rgba(106, 98, 87, 0.38);
+  stroke-width: 1.5;
+}
+
+.trend-axis-label,
+.trend-date {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.trend-grid {
+  stroke: rgba(106, 98, 87, 0.12);
+  stroke-width: 1;
+}
+
+.trend-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+
+.trend-point {
+  stroke: #fffdf8;
+  stroke-width: 2;
+}
+
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trend-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.82);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.trend-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
 .admin-grid {
   display: grid;
   gap: 18px;

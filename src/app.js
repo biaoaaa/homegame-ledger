@@ -6,6 +6,7 @@ import {
   getDonationLeaderboard,
   getGameEntries,
   getGameSwingLeaders,
+  getRecentGameTrend,
   getRecentGameTotals,
   getTopSingleGameWins,
   getQuickAmounts,
@@ -86,6 +87,8 @@ const translations = {
     selectWho: "我是谁",
     saveResult: "保存本局记录",
     topWinBoard: "单局最高胜利 Top 3",
+    trendChart: "收益趋势图",
+    trendEmpty: "最近十局还没有可画的收益记录",
     totalDonation: "累计捐献",
     todayEmpty: "今天还没有对局",
     todayGamesLabel: "今日对局",
@@ -142,6 +145,8 @@ const translations = {
     selectWho: "Who am I?",
     saveResult: "Save result",
     topWinBoard: "Biggest Single-Game Wins Top 3",
+    trendChart: "Trend chart",
+    trendEmpty: "No recent trend data yet",
     totalDonation: "Total donation",
     todayEmpty: "No games today yet",
     todayGamesLabel: "Today's games",
@@ -480,6 +485,7 @@ function renderViewTabs() {
 
 function renderRecentTotalsView() {
   const rows = getRecentGameTotals(state);
+  const trend = getRecentGameTrend(state);
   const gameCount = Math.min(10, state.games.length);
 
   return `
@@ -489,6 +495,10 @@ function renderRecentTotalsView() {
           <h2>${t("recentTitle")}</h2>
           <span>${formatGamesPlayed(gameCount)}</span>
         </div>
+        <details class="trend-panel">
+          <summary>${t("trendChart")}</summary>
+          ${renderRecentTrendChart(trend)}
+        </details>
         <div class="leaderboard">
           ${
             rows.length
@@ -507,6 +517,72 @@ function renderRecentTotalsView() {
         </div>
       </section>
     </section>
+  `;
+}
+
+function renderRecentTrendChart(trend) {
+  if (!trend.series.length || !trend.games.length) {
+    return `<div class="empty-state compact">${t("trendEmpty")}</div>`;
+  }
+
+  const width = 640;
+  const height = 280;
+  const padding = { top: 20, right: 22, bottom: 46, left: 58 };
+  const allValues = trend.series.flatMap((row) => row.points);
+  const minValue = Math.min(0, ...allValues);
+  const maxValue = Math.max(0, ...allValues);
+  const valueRange = maxValue - minValue || 1;
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  const xStep = trend.games.length > 1 ? chartWidth / (trend.games.length - 1) : 0;
+  const yFor = (value) =>
+    padding.top + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+  const xFor = (index) => padding.left + index * xStep;
+  const zeroY = yFor(0);
+  const colors = ["#176f5c", "#b23035", "#b96f12", "#25629a", "#6f4aa8", "#6a6257"];
+
+  return `
+    <div class="trend-chart">
+      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${t("trendChart")}">
+        <line class="trend-axis" x1="${padding.left}" y1="${zeroY}" x2="${width - padding.right}" y2="${zeroY}" />
+        <text class="trend-axis-label" x="${padding.left - 10}" y="${zeroY - 6}" text-anchor="end">0</text>
+        ${trend.games
+          .map((game, index) => {
+            const x = xFor(index);
+            return `
+              <line class="trend-grid" x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" />
+              <text class="trend-date" x="${x}" y="${height - 18}" text-anchor="middle">${escapeHtml(shortGameLabel(game.label))}</text>
+            `;
+          })
+          .join("")}
+        ${trend.series
+          .map((row, rowIndex) => {
+            const color = colors[rowIndex % colors.length];
+            const points = row.points
+              .map((value, index) => `${xFor(index).toFixed(1)},${yFor(value).toFixed(1)}`)
+              .join(" ");
+            return `
+              <polyline class="trend-line" points="${points}" stroke="${color}" />
+              ${row.points
+                .map(
+                  (value, index) =>
+                    `<circle class="trend-point" cx="${xFor(index).toFixed(1)}" cy="${yFor(value).toFixed(1)}" r="3.5" fill="${color}"><title>${escapeHtml(row.playerName)} ${formatAmount(value)}</title></circle>`
+                )
+                .join("")}
+            `;
+          })
+          .join("")}
+      </svg>
+      <div class="trend-legend">
+        ${trend.series
+          .map(
+            (row, index) => `
+              <span><i style="background:${colors[index % colors.length]}"></i>${escapeHtml(row.playerName)} <b class="${amountClass(row.total)}">${formatAmount(row.total)}</b></span>
+            `
+          )
+          .join("")}
+      </div>
+    </div>
   `;
 }
 
@@ -926,6 +1002,12 @@ function formatGamesPlayed(count) {
   const numericCount = Number(count) || 0;
   if (language === "en") return `${numericCount} ${numericCount === 1 ? "game" : "games"}`;
   return `${numericCount} 局`;
+}
+
+function shortGameLabel(label) {
+  const dateMatch = String(label).match(/\d{4}-(\d{2})-(\d{2})/);
+  if (!dateMatch) return String(label).slice(0, 6);
+  return `${dateMatch[1]}/${dateMatch[2]}`;
 }
 
 function escapeHtml(value) {

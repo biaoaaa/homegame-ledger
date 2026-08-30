@@ -101,6 +101,20 @@ describe("game detail layout", () => {
     assert.equal(stylesSource.includes("grid-template-columns: repeat(4, minmax(0, 1fr))"), true);
   });
 
+  it("adds a collapsible recent ten trend chart", () => {
+    const recentStart = appSource.indexOf("function renderRecentTotalsView");
+    const recentEnd = appSource.indexOf("function renderLeaderboard");
+    const recentSource = appSource.slice(recentStart, recentEnd);
+
+    assert.equal(appSource.includes("getRecentGameTrend"), true);
+    assert.equal(appSource.includes("function renderRecentTrendChart"), true);
+    assert.equal(recentSource.includes("<details"), true);
+    assert.equal(recentSource.includes('class="trend-panel"'), true);
+    assert.equal(recentSource.includes('t("trendChart")'), true);
+    assert.equal(appSource.includes("<svg"), true);
+    assert.equal(stylesSource.includes(".trend-chart"), true);
+  });
+
   it("moves historical games into their own main tab", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");

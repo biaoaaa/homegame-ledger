@@ -16,6 +16,7 @@ import {
   getGameSwingLeaders,
   getDonationLeaderboard,
   getPlayerParticipationCount,
+  getRecentGameTrend,
   getRecentGameTotals,
   getTopSingleGameWins,
   isValidAmountInput,
@@ -235,6 +236,42 @@ describe("ledger rules", () => {
       { playerName: "Cody", amount: 100, gamesPlayed: 2 },
       { playerName: "Jiarou", amount: -500, gamesPlayed: 10 }
     ]);
+  });
+
+  it("builds recent ten cumulative trend lines and carries missed games forward", () => {
+    const state = createInitialState();
+    const thirdPlayer = { id: "player_c", name: "Cody", createdAt: new Date().toISOString() };
+    const absentPlayer = { id: "player_d", name: "Absent", createdAt: new Date().toISOString() };
+    state.players.push(thirdPlayer, absentPlayer);
+
+    const games = Array.from({ length: 11 }, (_, index) =>
+      createGameForDate(state, `2026-08-${String(index + 1).padStart(2, "0")}`)
+    );
+
+    upsertEntry(state, games[0].id, absentPlayer.id, 999);
+    upsertEntry(state, games[1].id, state.players[0].id, 100);
+    upsertEntry(state, games[2].id, state.players[0].id, -50);
+    upsertEntry(state, games[2].id, thirdPlayer.id, 200);
+    upsertEntry(state, games[4].id, thirdPlayer.id, -25);
+
+    assert.deepEqual(getRecentGameTrend(state, 10), {
+      games: games.slice(1).map((game) => ({
+        id: game.id,
+        label: formatGameTitleWithWeekday(game)
+      })),
+      series: [
+        {
+          playerName: "Cody",
+          total: 175,
+          points: [0, 200, 200, 175, 175, 175, 175, 175, 175, 175]
+        },
+        {
+          playerName: "Biao",
+          total: 50,
+          points: [100, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+        }
+      ]
+    });
   });
 
   it("deletes a game with its entries and selects a remaining game", () => {

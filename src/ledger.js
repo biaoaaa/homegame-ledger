@@ -351,14 +351,22 @@ export function getRecentGameTotals(state, limit = 10) {
     });
 }
 
-export function getRecentGameTrend(state, limit = 10) {
+export function getRecentGameTrend(state, limit = 10, selectedPlayerIds = null) {
   const games = sortGames(state.games).slice(0, limit).reverse();
+  const recentGameIds = new Set(games.map((game) => game.id));
+  const selectedPlayerSet = Array.isArray(selectedPlayerIds)
+    ? new Set(selectedPlayerIds.filter(Boolean))
+    : null;
   const playersById = new Map(state.players.map((player) => [player.id, player]));
   const entriesByGameAndPlayer = new Map();
   const participatingPlayerIds = new Set();
 
   for (const entry of state.entries) {
-    if (!games.some((game) => game.id === entry.gameId) || !playersById.has(entry.playerId)) {
+    if (
+      !recentGameIds.has(entry.gameId) ||
+      !playersById.has(entry.playerId) ||
+      (selectedPlayerSet && !selectedPlayerSet.has(entry.playerId))
+    ) {
       continue;
     }
 

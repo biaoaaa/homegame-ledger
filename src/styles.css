@@ -395,15 +395,21 @@ h2 {
 }
 
 .trend-axis-label,
+.trend-y-label,
 .trend-date {
   fill: var(--muted);
   font-size: 12px;
   font-weight: 800;
 }
 
-.trend-grid {
+.trend-grid,
+.trend-y-grid {
   stroke: rgba(106, 98, 87, 0.12);
   stroke-width: 1;
+}
+
+.trend-y-grid {
+  stroke: rgba(106, 98, 87, 0.16);
 }
 
 .trend-line {
@@ -441,6 +447,38 @@ h2 {
   width: 10px;
   height: 10px;
   border-radius: 999px;
+}
+
+.trend-compare-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px;
+  align-items: end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.trend-compare-form button {
+  min-height: 44px;
+  padding: 0 10px;
+  font-weight: 850;
+}
+
+.trend-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.trend-selected span {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid rgba(23, 111, 92, 0.24);
+  border-radius: 999px;
+  background: rgba(23, 111, 92, 0.08);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .admin-grid {

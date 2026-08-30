@@ -87,7 +87,9 @@ const translations = {
     selectWho: "我是谁",
     saveResult: "保存本局记录",
     topWinBoard: "单局最高胜利 Top 3",
+    trendAddPlayer: "添加",
     trendChart: "收益趋势图",
+    trendCompare: "添加对比",
     trendEmpty: "最近十局还没有可画的收益记录",
     totalDonation: "累计捐献",
     todayEmpty: "今天还没有对局",
@@ -145,7 +147,9 @@ const translations = {
     selectWho: "Who am I?",
     saveResult: "Save result",
     topWinBoard: "Biggest Single-Game Wins Top 3",
+    trendAddPlayer: "Add",
     trendChart: "Trend chart",
+    trendCompare: "Compare",
     trendEmpty: "No recent trend data yet",
     totalDonation: "Total donation",
     todayEmpty: "No games today yet",
@@ -160,6 +164,7 @@ let entryIdentity = null;
 let hasAccess = readAccess();
 let hasAdminAccess = readAdminAccess();
 let activeView = "games";
+let trendComparisonPlayerIds = [];
 let language = readLanguage();
 
 function t(key) {
@@ -485,7 +490,10 @@ function renderViewTabs() {
 
 function renderRecentTotalsView() {
   const rows = getRecentGameTotals(state);
-  const trend = getRecentGameTrend(state);
+  const trend = getRecentGameTrend(state, 10, getTrendSelectedPlayerIds());
+  const trendPlayerIds = getTrendPlayerIds();
+  const trendSelectedPlayerIds = getTrendSelectedPlayerIds();
+  const trendSelectedIds = new Set(trendSelectedPlayerIds);
   const gameCount = Math.min(10, state.games.length);
 
   return `
@@ -497,6 +505,31 @@ function renderRecentTotalsView() {
         </div>
         <details class="trend-panel">
           <summary>${t("trendChart")}</summary>
+          <form id="trendCompareForm" class="trend-compare-form">
+            <label class="field">
+              <span>${t("trendCompare")}</span>
+              <select id="trendComparePlayer" name="playerId">
+                <option value="">${t("selectName")}</option>
+                ${trendPlayerIds
+                  .filter((playerId) => !trendSelectedIds.has(playerId))
+                  .map((playerId) => {
+                    const player = state.players.find((item) => item.id === playerId);
+                    return player
+                      ? `<option value="${player.id}">${escapeHtml(player.name)}</option>`
+                      : "";
+                  })
+                  .join("")}
+              </select>
+            </label>
+            <button type="submit">${t("trendAddPlayer")}</button>
+          </form>
+          <div class="trend-selected">
+            ${trendSelectedPlayerIds
+              .map((playerId) => state.players.find((item) => item.id === playerId))
+              .filter(Boolean)
+              .map((player) => `<span>${escapeHtml(player.name)}</span>`)
+              .join("")}
+          </div>
           ${renderRecentTrendChart(trend)}
         </details>
         <div class="leaderboard">
@@ -520,6 +553,33 @@ function renderRecentTotalsView() {
   `;
 }
 
+function getTrendPlayerIds() {
+  const recentGameIds = new Set(sortGames(state.games).slice(0, 10).map((game) => game.id));
+  const playerIds = new Set();
+
+  for (const entry of state.entries) {
+    if (recentGameIds.has(entry.gameId)) {
+      playerIds.add(entry.playerId);
+    }
+  }
+
+  return [...playerIds].filter((playerId) =>
+    state.players.some((player) => player.id === playerId)
+  );
+}
+
+function getTrendSelectedPlayerIds() {
+  const availableIds = new Set(getTrendPlayerIds());
+  const selectedIds = [state.selectedPlayerId, ...trendComparisonPlayerIds].filter(
+    (playerId, index, ids) =>
+      playerId && availableIds.has(playerId) && ids.indexOf(playerId) === index
+  );
+  trendComparisonPlayerIds = trendComparisonPlayerIds.filter((playerId) =>
+    selectedIds.includes(playerId)
+  );
+  return selectedIds;
+}
+
 function renderRecentTrendChart(trend) {
   if (!trend.series.length || !trend.games.length) {
     return `<div class="empty-state compact">${t("trendEmpty")}</div>`;
@@ -535,6 +595,7 @@ function renderRecentTrendChart(trend) {
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const xStep = trend.games.length > 1 ? chartWidth / (trend.games.length - 1) : 0;
+  const yTicks = buildTrendTicks(minValue, maxValue);
   const yFor = (value) =>
     padding.top + chartHeight - ((value - minValue) / valueRange) * chartHeight;
   const xFor = (index) => padding.left + index * xStep;
@@ -544,8 +605,16 @@ function renderRecentTrendChart(trend) {
   return `
     <div class="trend-chart">
       <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${t("trendChart")}">
+        ${yTicks
+          .map((tick) => {
+            const y = yFor(tick);
+            return `
+              <line class="trend-y-grid" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" />
+              <text class="trend-y-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${formatAmount(tick)}</text>
+            `;
+          })
+          .join("")}
         <line class="trend-axis" x1="${padding.left}" y1="${zeroY}" x2="${width - padding.right}" y2="${zeroY}" />
-        <text class="trend-axis-label" x="${padding.left - 10}" y="${zeroY - 6}" text-anchor="end">0</text>
         ${trend.games
           .map((game, index) => {
             const x = xFor(index);
@@ -584,6 +653,26 @@ function renderRecentTrendChart(trend) {
       </div>
     </div>
   `;
+}
+
+function buildTrendTicks(minValue, maxValue, count = 5) {
+  const minTick = Math.min(0, minValue);
+  const maxTick = Math.max(0, maxValue);
+  const range = maxTick - minTick || 1;
+  const roughStep = range / Math.max(1, count - 1);
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+  const normalized = roughStep / magnitude;
+  const step =
+    normalized <= 1 ? magnitude : normalized <= 2 ? 2 * magnitude : normalized <= 5 ? 5 * magnitude : 10 * magnitude;
+  const start = Math.floor(minTick / step) * step;
+  const end = Math.ceil(maxTick / step) * step;
+  const ticks = [];
+
+  for (let value = start; value <= end + step / 2; value += step) {
+    ticks.push(Object.is(value, -0) ? 0 : Math.round(value));
+  }
+
+  return ticks.length >= 2 ? ticks : [0, step];
 }
 
 function renderLeaderboard() {
@@ -883,6 +972,16 @@ function bindEvents() {
         await refreshState({ preserveSelectedGame: activeView !== "games" });
       });
     });
+  });
+
+  document.querySelector("#trendCompareForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const playerId = String(form.get("playerId") || "");
+    if (playerId && !trendComparisonPlayerIds.includes(playerId)) {
+      trendComparisonPlayerIds.push(playerId);
+    }
+    render();
   });
 
   document.querySelector("#createGameForm")?.addEventListener("submit", (event) => {

@@ -115,6 +115,33 @@ describe("game detail layout", () => {
     assert.equal(stylesSource.includes(".trend-chart"), true);
   });
 
+  it("defaults the trend chart to the current player and supports adding comparisons", () => {
+    const recentStart = appSource.indexOf("function renderRecentTotalsView");
+    const recentEnd = appSource.indexOf("function renderRecentTrendChart");
+    const recentSource = appSource.slice(recentStart, recentEnd);
+    const eventStart = appSource.indexOf('document.querySelector("#trendCompareForm")');
+    const eventEnd = appSource.indexOf('document.querySelector("#createGameForm")');
+    const eventSource = appSource.slice(eventStart, eventEnd);
+
+    assert.equal(appSource.includes("let trendComparisonPlayerIds = []"), true);
+    assert.equal(appSource.includes("function getTrendSelectedPlayerIds"), true);
+    assert.equal(recentSource.includes("getRecentGameTrend(state, 10, getTrendSelectedPlayerIds())"), true);
+    assert.equal(recentSource.includes('id="trendCompareForm"'), true);
+    assert.equal(recentSource.includes('id="trendComparePlayer"'), true);
+    assert.equal(eventSource.includes("trendComparisonPlayerIds.push"), true);
+  });
+
+  it("draws multiple labeled y-axis ticks in the trend chart", () => {
+    const chartStart = appSource.indexOf("function renderRecentTrendChart");
+    const chartEnd = appSource.indexOf("function renderLeaderboard");
+    const chartSource = appSource.slice(chartStart, chartEnd);
+
+    assert.equal(chartSource.includes("buildTrendTicks"), true);
+    assert.equal(chartSource.includes("trend-y-grid"), true);
+    assert.equal(chartSource.includes("trend-y-label"), true);
+    assert.equal(appSource.includes("function buildTrendTicks"), true);
+  });
+
   it("moves historical games into their own main tab", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");

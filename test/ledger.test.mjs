@@ -274,6 +274,25 @@ describe("ledger rules", () => {
     });
   });
 
+  it("can limit recent ten trend lines to selected players", () => {
+    const state = createInitialState();
+    const thirdPlayer = { id: "player_c", name: "Cody", createdAt: new Date().toISOString() };
+    state.players.push(thirdPlayer);
+
+    const firstGame = createGameForDate(state, "2026-08-20");
+    const secondGame = createGameForDate(state, "2026-08-21");
+    upsertEntry(state, firstGame.id, state.players[0].id, 100);
+    upsertEntry(state, secondGame.id, state.players[1].id, 200);
+    upsertEntry(state, secondGame.id, thirdPlayer.id, 300);
+
+    assert.deepEqual(
+      getRecentGameTrend(state, 10, [state.players[0].id, thirdPlayer.id]).series.map(
+        (row) => row.playerName
+      ),
+      ["Cody", "Biao"]
+    );
+  });
+
   it("deletes a game with its entries and selects a remaining game", () => {
     const state = createInitialState();
     const firstGame = createGameForDate(state, "2026-08-15");

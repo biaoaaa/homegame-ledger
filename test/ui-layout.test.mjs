@@ -131,6 +131,36 @@ describe("game detail layout", () => {
     assert.equal(eventSource.includes("trendComparisonPlayerIds.push"), true);
   });
 
+  it("keeps the trend chart open after comparison changes", () => {
+    const recentStart = appSource.indexOf("function renderRecentTotalsView");
+    const recentEnd = appSource.indexOf("function renderRecentTrendChart");
+    const recentSource = appSource.slice(recentStart, recentEnd);
+    const eventStart = appSource.indexOf('document.querySelector("#trendCompareForm")');
+    const eventEnd = appSource.indexOf('document.querySelector("#createGameForm")');
+    const eventSource = appSource.slice(eventStart, eventEnd);
+
+    assert.equal(appSource.includes("let isTrendPanelOpen = false"), true);
+    assert.equal(recentSource.includes('${isTrendPanelOpen ? "open" : ""}'), true);
+    assert.equal(eventSource.includes("isTrendPanelOpen = true"), true);
+    assert.equal(eventSource.includes('document.querySelector(".trend-panel")'), true);
+  });
+
+  it("uses removable color chips for comparison players without repeating totals", () => {
+    const chartStart = appSource.indexOf("function renderRecentTrendChart");
+    const chartEnd = appSource.indexOf("function buildTrendTicks");
+    const chartSource = appSource.slice(chartStart, chartEnd);
+    const eventStart = appSource.indexOf('document.querySelector("#trendCompareForm")');
+    const eventEnd = appSource.indexOf('document.querySelector("#createGameForm")');
+    const eventSource = appSource.slice(eventStart, eventEnd);
+
+    assert.equal(chartSource.includes("data-trend-remove-player"), true);
+    assert.equal(chartSource.includes("row.playerId !== state.selectedPlayerId"), true);
+    assert.equal(chartSource.includes("formatAmount(row.total)"), false);
+    assert.equal(eventSource.includes('document.querySelectorAll("[data-trend-remove-player]")'), true);
+    assert.equal(eventSource.includes("trendComparisonPlayerIds.filter"), true);
+    assert.equal(stylesSource.includes(".trend-remove"), true);
+  });
+
   it("draws multiple labeled y-axis ticks in the trend chart", () => {
     const chartStart = appSource.indexOf("function renderRecentTrendChart");
     const chartEnd = appSource.indexOf("function renderLeaderboard");

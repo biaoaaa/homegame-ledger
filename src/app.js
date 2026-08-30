@@ -165,6 +165,7 @@ let hasAccess = readAccess();
 let hasAdminAccess = readAdminAccess();
 let activeView = "games";
 let trendComparisonPlayerIds = [];
+let isTrendPanelOpen = false;
 let language = readLanguage();
 
 function t(key) {
@@ -503,7 +504,7 @@ function renderRecentTotalsView() {
           <h2>${t("recentTitle")}</h2>
           <span>${formatGamesPlayed(gameCount)}</span>
         </div>
-        <details class="trend-panel">
+        <details class="trend-panel" ${isTrendPanelOpen ? "open" : ""}>
           <summary>${t("trendChart")}</summary>
           <form id="trendCompareForm" class="trend-compare-form">
             <label class="field">
@@ -523,13 +524,6 @@ function renderRecentTotalsView() {
             </label>
             <button type="submit">${t("trendAddPlayer")}</button>
           </form>
-          <div class="trend-selected">
-            ${trendSelectedPlayerIds
-              .map((playerId) => state.players.find((item) => item.id === playerId))
-              .filter(Boolean)
-              .map((player) => `<span>${escapeHtml(player.name)}</span>`)
-              .join("")}
-          </div>
           ${renderRecentTrendChart(trend)}
         </details>
         <div class="leaderboard">
@@ -646,7 +640,15 @@ function renderRecentTrendChart(trend) {
         ${trend.series
           .map(
             (row, index) => `
-              <span><i style="background:${colors[index % colors.length]}"></i>${escapeHtml(row.playerName)} <b class="${amountClass(row.total)}">${formatAmount(row.total)}</b></span>
+              <span>
+                <i style="background:${colors[index % colors.length]}"></i>
+                ${escapeHtml(row.playerName)}
+                ${
+                  row.playerId !== state.selectedPlayerId
+                    ? `<button class="trend-remove" type="button" data-trend-remove-player="${row.playerId}" aria-label="Remove ${escapeHtml(row.playerName)}">×</button>`
+                    : ""
+                }
+              </span>
             `
           )
           .join("")}
@@ -981,7 +983,23 @@ function bindEvents() {
     if (playerId && !trendComparisonPlayerIds.includes(playerId)) {
       trendComparisonPlayerIds.push(playerId);
     }
+    isTrendPanelOpen = true;
     render();
+  });
+
+  document.querySelector(".trend-panel")?.addEventListener("toggle", (event) => {
+    isTrendPanelOpen = event.currentTarget.open;
+  });
+
+  document.querySelectorAll("[data-trend-remove-player]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      trendComparisonPlayerIds = trendComparisonPlayerIds.filter(
+        (playerId) => playerId !== button.dataset.trendRemovePlayer
+      );
+      isTrendPanelOpen = true;
+      render();
+    });
   });
 
   document.querySelector("#createGameForm")?.addEventListener("submit", (event) => {

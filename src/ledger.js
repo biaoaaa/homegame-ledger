@@ -384,6 +384,7 @@ export function getRecentGameTrend(state, limit = 10, selectedPlayerIds = null) 
       });
 
       return {
+        playerId,
         playerName: playersById.get(playerId).name,
         total: runningTotal,
         points

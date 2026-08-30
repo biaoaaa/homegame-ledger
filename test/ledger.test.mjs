@@ -261,11 +261,13 @@ describe("ledger rules", () => {
       })),
       series: [
         {
+          playerId: thirdPlayer.id,
           playerName: "Cody",
           total: 175,
           points: [0, 200, 200, 175, 175, 175, 175, 175, 175, 175]
         },
         {
+          playerId: state.players[0].id,
           playerName: "Biao",
           total: 50,
           points: [100, 50, 50, 50, 50, 50, 50, 50, 50, 50]

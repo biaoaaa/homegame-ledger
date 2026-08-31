@@ -511,7 +511,7 @@ function renderRecentTotalsView() {
           <form id="trendCompareForm" class="trend-compare-form">
             <label class="field">
               <span>${t("trendCompare")}</span>
-              <select id="trendComparePlayer" name="playerId">
+              <select id="trendComparePlayer" name="playerId" aria-label="${t("trendComparePlaceholder")}">
                 <option value="">${t("trendComparePlaceholder")}</option>
                 ${trendPlayerIds
                   .filter((playerId) => !trendSelectedIds.has(playerId))

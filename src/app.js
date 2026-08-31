@@ -90,6 +90,7 @@ const translations = {
     trendAddPlayer: "添加",
     trendChart: "收益趋势图",
     trendCompare: "添加对比",
+    trendComparePlaceholder: "添加玩家对比",
     trendEmpty: "最近十局还没有可画的收益记录",
     totalDonation: "累计捐献",
     todayEmpty: "今天还没有对局",
@@ -150,6 +151,7 @@ const translations = {
     trendAddPlayer: "Add",
     trendChart: "Trend chart",
     trendCompare: "Compare",
+    trendComparePlaceholder: "Add player comparison",
     trendEmpty: "No recent trend data yet",
     totalDonation: "Total donation",
     todayEmpty: "No games today yet",
@@ -510,7 +512,7 @@ function renderRecentTotalsView() {
             <label class="field">
               <span>${t("trendCompare")}</span>
               <select id="trendComparePlayer" name="playerId">
-                <option value="">${t("selectName")}</option>
+                <option value="">${t("trendComparePlaceholder")}</option>
                 ${trendPlayerIds
                   .filter((playerId) => !trendSelectedIds.has(playerId))
                   .map((playerId) => {

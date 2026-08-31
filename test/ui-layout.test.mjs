@@ -138,6 +138,7 @@ describe("game detail layout", () => {
 
     assert.equal(appSource.includes('trendComparePlaceholder: "添加玩家对比"'), true);
     assert.equal(recentSource.includes('t("trendComparePlaceholder")'), true);
+    assert.equal(recentSource.includes('aria-label="${t("trendComparePlaceholder")}"'), true);
     assert.equal(recentSource.includes('value="">${t("selectName")}'), false);
   });
 

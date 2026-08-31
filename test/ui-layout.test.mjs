@@ -131,6 +131,16 @@ describe("game detail layout", () => {
     assert.equal(eventSource.includes("trendComparisonPlayerIds.push"), true);
   });
 
+  it("uses a comparison-specific placeholder in the trend player picker", () => {
+    const recentStart = appSource.indexOf("function renderRecentTotalsView");
+    const recentEnd = appSource.indexOf("function renderRecentTrendChart");
+    const recentSource = appSource.slice(recentStart, recentEnd);
+
+    assert.equal(appSource.includes('trendComparePlaceholder: "添加玩家对比"'), true);
+    assert.equal(recentSource.includes('t("trendComparePlaceholder")'), true);
+    assert.equal(recentSource.includes('value="">${t("selectName")}'), false);
+  });
+
   it("keeps the trend chart open after comparison changes", () => {
     const recentStart = appSource.indexOf("function renderRecentTotalsView");
     const recentEnd = appSource.indexOf("function renderRecentTrendChart");

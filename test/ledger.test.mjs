@@ -15,6 +15,7 @@ import {
   getGameEntries,
   getGameSwingLeaders,
   getDonationLeaderboard,
+  getPlayerStats,
   getPlayerParticipationCount,
   getRecentGameTrend,
   getRecentGameTotals,
@@ -109,6 +110,34 @@ describe("ledger rules", () => {
 
     assert.equal(getPlayerParticipationCount(state, state.players[0].id), 2);
     assert.equal(getPlayerParticipationCount(state, state.players[1].id), 1);
+  });
+
+  it("reports a player's personal summary and top three wins", () => {
+    const state = createInitialState();
+    const player = state.players[0];
+    const games = [
+      createGameForDate(state, "2026-08-12", player.id),
+      createGameForDate(state, "2026-08-13", player.id),
+      createGameForDate(state, "2026-08-14", player.id),
+      createGameForDate(state, "2026-08-15", player.id),
+      createGameForDate(state, "2026-08-16", player.id)
+    ];
+
+    upsertEntry(state, games[0].id, player.id, 500, 100);
+    upsertEntry(state, games[1].id, player.id, -200, 0);
+    upsertEntry(state, games[2].id, player.id, 1200, 300);
+    upsertEntry(state, games[3].id, player.id, 800, 50);
+    upsertEntry(state, games[4].id, player.id, 0, 0);
+
+    assert.deepEqual(getPlayerStats(state, player.id), {
+      totalDonation: 450,
+      gamesPlayed: 5,
+      topWins: [
+        { gameTitle: "2026-08-14 周五 对局一", amount: 1200 },
+        { gameTitle: "2026-08-15 周六 对局一", amount: 800 },
+        { gameTitle: "2026-08-12 周三 对局一", amount: 500 }
+      ]
+    });
   });
 
   it("parses common poker amount inputs", () => {

@@ -88,6 +88,27 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("activeView"), true);
   });
 
+  it("adds a personal stats tab with bilingual labels", () => {
+    const tabsStart = appSource.indexOf("function renderViewTabs");
+    const tabsEnd = appSource.indexOf("function renderRecentTotalsView");
+    const tabsSource = appSource.slice(tabsStart, tabsEnd);
+
+    assert.equal(tabsSource.includes('data-view="mine"'), true);
+    assert.equal(appSource.includes('activeView === "mine" ? renderMyView()'), true);
+    assert.equal(appSource.includes("function renderMyView"), true);
+    assert.equal(appSource.includes("getPlayerStats"), true);
+    assert.equal(appSource.includes('myTab: "我的"'), true);
+    assert.equal(appSource.includes('myTab: "My Stats"'), true);
+    assert.equal(appSource.includes('myTopWins: "我的单局最大胜利 Top 3"'), true);
+    assert.equal(appSource.includes('myTopWins: "My Biggest Wins Top 3"'), true);
+    const myViewStart = appSource.indexOf("function renderMyView");
+    const myViewEnd = appSource.indexOf("function renderTopWinBoard");
+    const myViewSource = appSource.slice(myViewStart, myViewEnd);
+    assert.equal(myViewSource.includes('t("myWins")'), false);
+    assert.equal(myViewSource.includes('t("myWinRate")'), false);
+    assert.equal(stylesSource.includes("grid-template-columns: repeat(4, minmax(0, 1fr))"), true);
+  });
+
   it("hides the recent ten tab while preserving its implementation", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");
@@ -100,7 +121,7 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("getRecentGameTotals"), true);
     assert.equal(appSource.includes("function renderRecentTotalsView"), true);
     assert.equal(renderSource.includes('activeView === "recent" ? renderRecentTotalsView()'), false);
-    assert.equal(stylesSource.includes("grid-template-columns: repeat(3, minmax(0, 1fr))"), true);
+    assert.equal(stylesSource.includes("grid-template-columns: repeat(4, minmax(0, 1fr))"), true);
   });
 
   it("expands the win and donation leaderboards to top five", () => {

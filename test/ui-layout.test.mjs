@@ -88,17 +88,26 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes("activeView"), true);
   });
 
-  it("shows recent ten game net results in their own main tab", () => {
+  it("hides the recent ten tab while preserving its implementation", () => {
     const renderStart = appSource.indexOf("function render()");
     const renderEnd = appSource.indexOf("function renderPinGate");
     const renderSource = appSource.slice(renderStart, renderEnd);
+    const tabsStart = appSource.indexOf("function renderViewTabs");
+    const tabsEnd = appSource.indexOf("function renderRecentTotalsView");
+    const tabsSource = appSource.slice(tabsStart, tabsEnd);
 
-    assert.equal(appSource.includes('data-view="recent"'), true);
-    assert.equal(appSource.includes('t("recentTab")'), true);
+    assert.equal(tabsSource.includes('data-view="recent"'), false);
     assert.equal(appSource.includes("getRecentGameTotals"), true);
     assert.equal(appSource.includes("function renderRecentTotalsView"), true);
-    assert.equal(renderSource.includes('activeView === "recent" ? renderRecentTotalsView()'), true);
-    assert.equal(stylesSource.includes("grid-template-columns: repeat(4, minmax(0, 1fr))"), true);
+    assert.equal(renderSource.includes('activeView === "recent" ? renderRecentTotalsView()'), false);
+    assert.equal(stylesSource.includes("grid-template-columns: repeat(3, minmax(0, 1fr))"), true);
+  });
+
+  it("expands the win and donation leaderboards to top five", () => {
+    assert.equal(appSource.includes('topWinBoard: "单局最高胜利 Top 5"'), true);
+    assert.equal(appSource.includes('donationBoard: "捐献榜 Top 5"'), true);
+    assert.equal(appSource.includes('topWinBoard: "Biggest Single-Game Wins Top 5"'), true);
+    assert.equal(appSource.includes('donationBoard: "Donation Top 5"'), true);
   });
 
   it("adds a collapsible recent ten trend chart", () => {

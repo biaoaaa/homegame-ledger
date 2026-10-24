@@ -172,11 +172,12 @@ describe("ledger rules", () => {
     assert.equal(state.entries[0].donationAmount, 100);
   });
 
-  it("reports the top three single-game wins", () => {
+  it("reports the top five single-game wins", () => {
     const state = createInitialState();
     const thirdPlayer = { id: "player_c", name: "Cody", createdAt: new Date().toISOString() };
     const fourthPlayer = { id: "player_d", name: "Dylan", createdAt: new Date().toISOString() };
-    state.players.push(thirdPlayer, fourthPlayer);
+    const fifthPlayer = { id: "player_e", name: "Erin", createdAt: new Date().toISOString() };
+    state.players.push(thirdPlayer, fourthPlayer, fifthPlayer);
     const firstGame = createGameForDate(state, "2026-08-15");
     const secondGame = createGameForDate(state, "2026-08-15");
 
@@ -184,19 +185,24 @@ describe("ledger rules", () => {
     upsertEntry(state, firstGame.id, state.players[1].id, -1200);
     upsertEntry(state, secondGame.id, thirdPlayer.id, 2500);
     upsertEntry(state, secondGame.id, fourthPlayer.id, 800);
+    upsertEntry(state, firstGame.id, fifthPlayer.id, 600);
     upsertEntry(state, secondGame.id, state.players[0].id, 1600);
 
     assert.deepEqual(getTopSingleGameWins(state), [
       { playerName: "Cody", gameTitle: "2026-08-15 周六 对局二", amount: 2500 },
       { playerName: "Biao", gameTitle: "2026-08-15 周六 对局二", amount: 1600 },
-      { playerName: "Biao", gameTitle: "2026-08-15 周六 对局一", amount: 1200 }
+      { playerName: "Biao", gameTitle: "2026-08-15 周六 对局一", amount: 1200 },
+      { playerName: "Dylan", gameTitle: "2026-08-15 周六 对局二", amount: 800 },
+      { playerName: "Erin", gameTitle: "2026-08-15 周六 对局一", amount: 600 }
     ]);
   });
 
-  it("reports the top three total donations", () => {
+  it("reports the top five total donations", () => {
     const state = createInitialState();
     const thirdPlayer = { id: "player_c", name: "Cody", createdAt: new Date().toISOString() };
-    state.players.push(thirdPlayer);
+    const fourthPlayer = { id: "player_d", name: "Dylan", createdAt: new Date().toISOString() };
+    const fifthPlayer = { id: "player_e", name: "Erin", createdAt: new Date().toISOString() };
+    state.players.push(thirdPlayer, fourthPlayer, fifthPlayer);
     const firstGame = createGameForDate(state, "2026-08-15");
     const secondGame = createGameForDate(state, "2026-08-16");
 
@@ -204,11 +210,15 @@ describe("ledger rules", () => {
     upsertEntry(state, secondGame.id, state.players[0].id, 800, 200);
     upsertEntry(state, firstGame.id, state.players[1].id, 500, 50);
     upsertEntry(state, secondGame.id, thirdPlayer.id, 1200, 400);
+    upsertEntry(state, firstGame.id, fourthPlayer.id, 0, 40);
+    upsertEntry(state, secondGame.id, fifthPlayer.id, 0, 30);
 
     assert.deepEqual(getDonationLeaderboard(state), [
       { playerName: "Cody", amount: 400 },
       { playerName: "Biao", amount: 300 },
-      { playerName: "Jiarou", amount: 50 }
+      { playerName: "Jiarou", amount: 50 },
+      { playerName: "Dylan", amount: 40 },
+      { playerName: "Erin", amount: 30 }
     ]);
   });
 

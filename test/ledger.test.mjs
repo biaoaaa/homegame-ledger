@@ -132,6 +132,7 @@ describe("ledger rules", () => {
     assert.deepEqual(getPlayerStats(state, player.id), {
       totalDonation: 450,
       gamesPlayed: 5,
+      biggestWinnerCount: 3,
       topWins: [
         { gameTitle: "2026-08-14 周五 对局一", amount: 1200 },
         { gameTitle: "2026-08-15 周六 对局一", amount: 800 },

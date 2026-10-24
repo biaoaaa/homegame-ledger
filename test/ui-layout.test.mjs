@@ -101,11 +101,14 @@ describe("game detail layout", () => {
     assert.equal(appSource.includes('myTab: "My Stats"'), true);
     assert.equal(appSource.includes('myTopWins: "我的单局最大胜利 Top 3"'), true);
     assert.equal(appSource.includes('myTopWins: "My Biggest Wins Top 3"'), true);
+    assert.equal(appSource.includes('myBiggestWins: "大赢家次数"'), true);
+    assert.equal(appSource.includes('myBiggestWins: "Biggest winner"'), true);
     const myViewStart = appSource.indexOf("function renderMyView");
     const myViewEnd = appSource.indexOf("function renderTopWinBoard");
     const myViewSource = appSource.slice(myViewStart, myViewEnd);
     assert.equal(myViewSource.includes('t("myWins")'), false);
     assert.equal(myViewSource.includes('t("myWinRate")'), false);
+    assert.equal(myViewSource.includes('t("myBiggestWins")'), true);
     assert.equal(stylesSource.includes("grid-template-columns: repeat(4, minmax(0, 1fr))"), true);
   });
 

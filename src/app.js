@@ -51,7 +51,7 @@ const translations = {
     deleteGame: "删除对局",
     hideUser: "隐藏用户",
     donation: "本局捐献",
-    donationBoard: "捐献榜 Top 3",
+    donationBoard: "捐献榜 Top 5",
     donationEmpty: "还没有捐献记录",
     donationInvalid: "捐献金额只能输入 0 或正整数。",
     donationLabel: "捐赠金额",
@@ -86,7 +86,7 @@ const translations = {
     selectName: "先选择你的名字",
     selectWho: "我是谁",
     saveResult: "保存本局记录",
-    topWinBoard: "单局最高胜利 Top 3",
+    topWinBoard: "单局最高胜利 Top 5",
     trendAddPlayer: "添加",
     trendChart: "收益趋势图",
     trendCompare: "添加对比",
@@ -112,7 +112,7 @@ const translations = {
     deleteGame: "Delete game",
     hideUser: "Hide user",
     donation: "Donation",
-    donationBoard: "Donation Top 3",
+    donationBoard: "Donation Top 5",
     donationEmpty: "No donation records yet",
     donationInvalid: "Donation must be 0 or a positive whole number.",
     donationLabel: "Donation",
@@ -147,7 +147,7 @@ const translations = {
     selectName: "Choose your name first",
     selectWho: "Who am I?",
     saveResult: "Save result",
-    topWinBoard: "Biggest Single-Game Wins Top 3",
+    topWinBoard: "Biggest Single-Game Wins Top 5",
     trendAddPlayer: "Add",
     trendChart: "Trend chart",
     trendCompare: "Compare",
@@ -243,7 +243,7 @@ function render() {
       ${renderError()}
       <main class="main">
         ${renderViewTabs()}
-        ${activeView === "history" ? renderHistoryView() : activeView === "recent" ? renderRecentTotalsView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
+        ${activeView === "history" ? renderHistoryView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
       </main>
     </div>
   `;
@@ -485,7 +485,6 @@ function renderViewTabs() {
     <nav class="view-tabs" aria-label="主视图">
       <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">${t("gamesTab")}</button>
       <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">${t("historyTab")}</button>
-      <button type="button" data-view="recent" class="${activeView === "recent" ? "active" : ""}">${t("recentTab")}</button>
       <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">${t("leaderboardTab")}</button>
     </nav>
   `;

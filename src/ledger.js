@@ -285,7 +285,7 @@ export function getPlayerParticipationCount(state, playerId) {
     .length;
 }
 
-export function getTopSingleGameWins(state, limit = 3) {
+export function getTopSingleGameWins(state, limit = 5) {
   const gamesById = new Map(state.games.map((game) => [game.id, game]));
   const playersById = new Map(state.players.map((player) => [player.id, player]));
 
@@ -300,7 +300,7 @@ export function getTopSingleGameWins(state, limit = 3) {
     .slice(0, limit);
 }
 
-export function getDonationLeaderboard(state, limit = 3) {
+export function getDonationLeaderboard(state, limit = 5) {
   const totals = new Map();
 
   for (const entry of state.entries) {

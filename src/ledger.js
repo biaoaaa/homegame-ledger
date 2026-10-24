@@ -287,6 +287,7 @@ export function getPlayerParticipationCount(state, playerId) {
 
 export function getPlayerStats(state, playerId) {
   const gamesById = new Map(state.games.map((game) => [game.id, game]));
+  const player = state.players.find((item) => item.id === playerId);
   const entries = state.entries.filter(
     (entry) => entry.playerId === playerId && gamesById.has(entry.gameId)
   );
@@ -298,6 +299,11 @@ export function getPlayerStats(state, playerId) {
       0
     ),
     gamesPlayed,
+    biggestWinnerCount: player
+      ? state.games.filter(
+          (game) => getGameSwingLeaders(state, game.id).biggestWinner?.playerName === player.name
+        ).length
+      : 0,
     topWins: entries
       .filter((entry) => entry.amount > 0)
       .map((entry) => ({

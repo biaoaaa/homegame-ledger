@@ -75,6 +75,7 @@ const translations = {
     locked: "已锁定",
     lockGame: "锁定",
     myDonation: "捐赠总额",
+    myBiggestWins: "大赢家次数",
     myGames: "参加局数",
     myTab: "我的",
     myTitle: "我的统计",
@@ -141,6 +142,7 @@ const translations = {
     locked: "Locked",
     lockGame: "Lock",
     myDonation: "Total donations",
+    myBiggestWins: "Biggest winner",
     myGames: "Games played",
     myTab: "My Stats",
     myTitle: "My Stats",
@@ -730,6 +732,7 @@ function renderMyView() {
       <dl class="my-stats-grid">
         <div><dt>${t("myDonation")}</dt><dd>${formatPlainAmount(stats.totalDonation)}</dd></div>
         <div><dt>${t("myGames")}</dt><dd>${formatGamesPlayed(stats.gamesPlayed)}</dd></div>
+        <div><dt>${t("myBiggestWins")}</dt><dd>${stats.biggestWinnerCount}</dd></div>
       </dl>
       <div class="leaderboard my-top-wins">
         <h3>${t("myTopWins")}</h3>

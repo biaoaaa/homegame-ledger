@@ -285,6 +285,30 @@ export function getPlayerParticipationCount(state, playerId) {
     .length;
 }
 
+export function getPlayerStats(state, playerId) {
+  const gamesById = new Map(state.games.map((game) => [game.id, game]));
+  const entries = state.entries.filter(
+    (entry) => entry.playerId === playerId && gamesById.has(entry.gameId)
+  );
+  const gamesPlayed = getPlayerParticipationCount(state, playerId);
+
+  return {
+    totalDonation: entries.reduce(
+      (sum, entry) => sum + Math.max(0, parseAmountInput(entry.donationAmount ?? 0)),
+      0
+    ),
+    gamesPlayed,
+    topWins: entries
+      .filter((entry) => entry.amount > 0)
+      .map((entry) => ({
+        gameTitle: formatGameTitleWithWeekday(gamesById.get(entry.gameId)),
+        amount: entry.amount
+      }))
+      .sort((left, right) => right.amount - left.amount)
+      .slice(0, 3)
+  };
+}
+
 export function getTopSingleGameWins(state, limit = 5) {
   const gamesById = new Map(state.games.map((game) => [game.id, game]));
   const playersById = new Map(state.players.map((player) => [player.id, player]));

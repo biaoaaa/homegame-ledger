@@ -6,6 +6,7 @@ import {
   getDonationLeaderboard,
   getGameEntries,
   getGameSwingLeaders,
+  getPlayerStats,
   getRecentGameTrend,
   getRecentGameTotals,
   getTopSingleGameWins,
@@ -73,6 +74,11 @@ const translations = {
     leaderboardTab: "榜单",
     locked: "已锁定",
     lockGame: "锁定",
+    myDonation: "捐赠总额",
+    myGames: "参加局数",
+    myTab: "我的",
+    myTitle: "我的统计",
+    myTopWins: "我的单局最大胜利 Top 3",
     newGame: "新建对局",
     needsAdjustment: "还需要",
     noWinRecords: "还没有赢钱记录",
@@ -134,6 +140,11 @@ const translations = {
     leaderboardTab: "Leaderboard",
     locked: "Locked",
     lockGame: "Lock",
+    myDonation: "Total donations",
+    myGames: "Games played",
+    myTab: "My Stats",
+    myTitle: "My Stats",
+    myTopWins: "My Biggest Wins Top 3",
     newGame: "New game",
     needsAdjustment: "Needs",
     noWinRecords: "No winning records yet",
@@ -243,7 +254,7 @@ function render() {
       ${renderError()}
       <main class="main">
         ${renderViewTabs()}
-        ${activeView === "history" ? renderHistoryView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
+        ${activeView === "history" ? renderHistoryView() : activeView === "mine" ? renderMyView() : activeView === "leaderboard" ? renderLeaderboardView() : renderGamesView()}
       </main>
     </div>
   `;
@@ -485,6 +496,7 @@ function renderViewTabs() {
     <nav class="view-tabs" aria-label="主视图">
       <button type="button" data-view="games" class="${activeView === "games" ? "active" : ""}">${t("gamesTab")}</button>
       <button type="button" data-view="history" class="${activeView === "history" ? "active" : ""}">${t("historyTab")}</button>
+      <button type="button" data-view="mine" class="${activeView === "mine" ? "active" : ""}">${t("myTab")}</button>
       <button type="button" data-view="leaderboard" class="${activeView === "leaderboard" ? "active" : ""}">${t("leaderboardTab")}</button>
     </nav>
   `;
@@ -698,6 +710,44 @@ function renderLeaderboardView() {
   return `
     <section class="leaderboard-view">
       ${renderLeaderboard()}
+    </section>
+  `;
+}
+
+function renderMyView() {
+  const player = selectedPlayer();
+  if (!player) return "";
+  const stats = getPlayerStats(state, player.id);
+
+  return `
+    <section class="panel my-stats-panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">${escapeHtml(player.name)}</p>
+          <h2>${t("myTitle")}</h2>
+        </div>
+      </div>
+      <dl class="my-stats-grid">
+        <div><dt>${t("myDonation")}</dt><dd>${formatPlainAmount(stats.totalDonation)}</dd></div>
+        <div><dt>${t("myGames")}</dt><dd>${formatGamesPlayed(stats.gamesPlayed)}</dd></div>
+      </dl>
+      <div class="leaderboard my-top-wins">
+        <h3>${t("myTopWins")}</h3>
+        ${
+          stats.topWins.length
+            ? stats.topWins
+                .map(
+                  (row, index) => `
+                    <div class="leader-row">
+                      <span><strong>${index + 1}</strong><small>${escapeHtml(row.gameTitle)}</small></span>
+                      <strong class="positive">${formatAmount(row.amount)}</strong>
+                    </div>
+                  `
+                )
+                .join("")
+            : `<div class="empty-state compact">${t("noWinRecords")}</div>`
+        }
+      </div>
     </section>
   `;
 }

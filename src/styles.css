@@ -320,7 +320,7 @@ h2 {
 
 .view-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -362,6 +362,39 @@ h2 {
 
 .leaderboard-view .leaderboard-panel {
   width: 100%;
+}
+
+.my-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 18px 0 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.my-stats-grid div {
+  min-width: 0;
+  padding: 16px 12px;
+}
+
+.my-stats-grid div + div {
+  border-left: 1px solid var(--line);
+}
+
+.my-stats-grid dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.my-stats-grid dd {
+  margin: 6px 0 0;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.my-top-wins {
+  margin-top: 22px;
 }
 
 .trend-panel {
@@ -773,6 +806,15 @@ h2 {
 
   .main {
     gap: 10px;
+  }
+
+  .view-tabs,
+  .my-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .my-stats-grid dd {
+    font-size: 24px;
   }
 
   .shell {
